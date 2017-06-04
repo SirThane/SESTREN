@@ -20,10 +20,8 @@ class VCAccess:
 
         Format:
         {
-            "guilds": {
-                "<guild id>": {
-                    "<voice channel id>": "<guild id>"
-                }
+            "<guild id>": {
+                "<voice channel id>": "<role id>"
             }
         }"""
         try:
@@ -35,7 +33,7 @@ class VCAccess:
 
     @property
     def servers(self):
-        return self.data["guilds"].keys()
+        return self.data.keys()
 
 
     @property
@@ -53,7 +51,8 @@ class VCAccess:
 
         Help docstr here later
         [p]vca addguild <guild id>
-        [p]vca removeguild <guild id>"""
+        [p]vca removeguild <guild id>
+        [p]vca role <subcommand>"""
         pass
 
     @vca.command(name='add')
@@ -64,11 +63,29 @@ class VCAccess:
     async def removeguild(self, ctx, guild: int):
         pass
 
+    @vca.group()
+    async def role(self):
+        """Voice Channel Access subcommand `role` command group
+
+        [p]vca role add <guild id> <voice channel id> <role id>
+        [p]vca role rem <guild id> <voice channel id>"""
+        pass
+
 
     async def on_voice_state_update(self, member, before, after):
         if before.channel != after.channel:
-            await self.channel.send(content='Client {0.name} has changed voice state.\n\
-            Previous channel: {1.channel}\nNew channel: {2.channel}'.format(member, before, after))
+            # await self.channel.send(content='Client {0.name} has changed voice state.\n\
+            # Previous channel: {1.channel}\nNew channel: {2.channel}'.format(member, before, after))
+            role = discord.utils.get(self.guild.roles, id=320707150219444234)
+            try:
+                if after.channel is not None:
+                    if "VC - GTA V" not in [r.name for r in member.roles]:
+                        await member.add_roles(role)
+                else:
+                    await member.remove_roles(role)
+            except:
+                with exception as e:
+                    print(e.__name__, str(e))
 
 
 
