@@ -47,11 +47,7 @@ class VCAccess:
                 l.append(c)
         return l
 
-    # def channels(self, guild):
-    #     gid = str(guild)
-    #     return list(self._data.get(gid))
-
-    async def modifyrole(self, member, voicestate, action):
+    async def modifyrole(self, member, voicestate, add=True):
         guild = str(voicestate.channel.guild.id)
         if guild in self.guilds:
             channel = str(voicestate.channel.id)
@@ -60,9 +56,9 @@ class VCAccess:
                 if channel in channels:
                     role = discord.utils.get(voicestate.channel.guild.roles, id=int(channels[channel]))
                     try:
-                        if action == 'add':
+                        if add:
                             await member.add_roles(role)
-                        elif action == 'remove'
+                        else:
                             await member.remove_roles(role)
                     except Exception as e:
                         await self.selfchannel.send(content=str(e))
@@ -79,7 +75,6 @@ class VCAccess:
     #                     await member.remove_roles(role)
     #                 except Exception as e:
     #                     await self.selfchannel.send(content=str(e))
-
 
 ######################################################################################
     @property  # PERSONAL GARBAGE EXPLICIT DEFINITIONS FOR FUNCTION TESTING
@@ -170,20 +165,33 @@ class VCAccess:
                 await self._data.put(guild, {})
                 await ctx.message.channel.send(content='VCA is now active on {0.name}'.format(g))
             d = self._data.get(guild)
-            print(d)
             d[channel] = role
-            print(d)
             await self._data.put(guild, d)
 
     @chan.command(aliases=['rem'])
-    async def _removechannel(self, ctx, guild: int):
-        pass
+    async def _removechannel(self, ctx, channel: str):
+        if channel in self.channels:
+            for guild in self.guilds:
+                d = self._data.get(guild)
+                if channel in list(d):
+                    g = discord.utils.get(self.bot.guilds, id=int(guild))
+                    c = discord.utils.get(g.voice_channels, id=int(channel))
+                    del d[channel]
+                    await self._data.put(guild, d)
+                    await ctx.message.channel.send(content='{0} has been removed from VCA.'.format(c))
+        else:
+            ctx.message.channel.send(content='Cannot find channel in VCA.')
 
 
     async def on_voice_state_update(self, member, before, after):
-        b, a, n = before.channel, after.channel, None
-        if (b, a) is not (None, None):
-            if a is not n:
+        b, a = before.channel, after.channel
+        if a is not None and b is None:
+            await self.modifyrole(member, after)
+        elif a is None and b is not None:
+            await self.modifyrole(member, before, False)
+        elif a is not None and b is not None:
+            await self.modifyrole(member, before, False)
+            await self.modifyrole(member, after)
 
 
             # if after.channel is not None:
