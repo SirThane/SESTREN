@@ -12,8 +12,7 @@ import traceback
 prefix = ["$"]
 
 initial_extensions = [
-    "cogs.admin",
-    "cogs.utils.vc_update"
+    "cogs.admin"
 ]
 
 description = "Testing vc_access"
