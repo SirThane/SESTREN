@@ -9,44 +9,49 @@ On leave, removes access role.
 import discord
 from discord.ext import commands
 import json
+from cogs.utils import config
 
 
 class VCAccess:
 
     def __init__(self, bot):
         self.bot = bot
+        self._data = config.Config("vc_access.json")
 
-    @property
-    def data(self):
-        """Load JSON config to property 'data'
-
-        Format:
-        {
-            "<guild id>": {
-                "<voice channel id>": "<role id>"
-            }
-        }"""
-        try:
-            with open('vc_access.json', 'r+') as datafile:
-                return json.load(datafile)
-        except IOError:
-            print("vc_access.json not found.")
-            self.bot.unload_extension('cogs.utils.vc_access')
+    # @property
+    # def data(self):
+    #     """Load JSON config to property 'data'
+    #
+    #     Format:
+    #     {
+    #         "<guild id>": {
+    #             "<voice channel id>": "<role id>"
+    #         }
+    #     }"""
+    #     try:
+    #         with open('vc_access.json', 'r+') as datafile:
+    #             return json.load(datafile)
+    #     except IOError:
+    #         print("vc_access.json not found.")
+    #         self.bot.unload_extension('cogs.utils.vc_access')
 
     @property
     def guilds(self):
-        return self.data.keys()
+        # l = []
+        # for i in self.data:
+        #     l.append(i)
+        # return l
+        return list(self._data)
 
-    @staticmethod
     def channels(self, guild):
-        guildid = str(guild.id)
-        return data[guildid].keys()
+        gid = str(guild)
+        return list(self._data.get(gid))
 
-    def update(self): ### WRITE FUNCTION TO OPEN JSON IN WRITE MODE FOR UPDATING
+    def update(self):  # TODO: WRITE FUNCTION TO OPEN JSON IN WRITE MODE FOR UPDATING
         pass
 
 
-    @property ### PERSONAL GARBAGE EXPLICIT DEFINITIONS FOR FUNCTION TESTING
+    @property  # PERSONAL GARBAGE EXPLICIT DEFINITIONS FOR FUNCTION TESTING
     def selfguild(self):
         return self.bot.get_guild(184502171117551617)
 
@@ -55,7 +60,8 @@ class VCAccess:
         return discord.Guild.get_channel(self.selfguild, 315232431835709441)
 
     @commands.command(name='test')
-    async def _test
+    async def _test(self):
+        await self.selfchannel.send(content='```\n{0}\n```'.format(self.guilds))
 
 
     @commands.group()
@@ -69,8 +75,18 @@ class VCAccess:
         pass
 
     @vca.command(name='add')
-    async def addguild(self, ctx, guild: int):
-        pass
+    async def addguild(self, ctx, gid: int):  # g = discord.Guild.id
+        gstr = str(g)
+        gobj = discord.utils.get(self.bot.guilds, id=gid)
+        if gobj is not None:
+            if gstr in self.guilds:
+                await ctx.message.channel.send(content='VCA already active on {0.name}.'.format(discord.utils.get(self.bot.guilds, id=guild)))
+            else:
+                await _data.put(gid, {})
+                await ctx.message.channel.send(content='VCA now active on {0.name}')
+        else:
+            await ctx.message.channel.send(content='gobj was None')
+
 
     @vca.command(name='rem')
     async def removeguild(self, ctx, guild: int):
