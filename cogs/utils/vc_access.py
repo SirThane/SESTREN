@@ -16,6 +16,16 @@ class VCAccess:
 
     @property
     def data(self):
+        """Load JSON config to property 'data'
+
+        Format:
+        {
+            "guilds": {
+                "<guild id>": {
+                    "<voice channel id>": "<guild id>"
+                }
+            }
+        }"""
         try:
             with open('vc_access.json', 'r+') as datafile:
                 return json.load(datafile)
@@ -25,7 +35,7 @@ class VCAccess:
 
     @property
     def servers(self):
-        return self.data.keys()
+        return self.data["guilds"].keys()
 
 
     @property
@@ -59,6 +69,7 @@ class VCAccess:
         if before.channel != after.channel:
             await self.channel.send(content='Client {0.name} has changed voice state.\n\
             Previous channel: {1.channel}\nNew channel: {2.channel}'.format(member, before, after))
+
 
 
 def setup(bot):
