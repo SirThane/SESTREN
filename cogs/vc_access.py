@@ -18,7 +18,7 @@ class VCAccess:
         self.bot = bot
         self._data = config.Config("vc_access.json")
 
-    # @property
+    # @property  # I'D STARTED WORKING ON THIS WHEN I WAS SHOWN DANNY'S CONFIG.PY AND I DON'T WANT TO THROW IT AWAY
     # def data(self):
     #     """Load JSON config to property 'data'
     #
@@ -37,18 +37,11 @@ class VCAccess:
 
     @property
     def guilds(self):
-        # l = []
-        # for i in self.data:
-        #     l.append(i)
-        # return l
         return list(self._data)
 
     def channels(self, guild):
         gid = str(guild)
         return list(self._data.get(gid))
-
-    def update(self):  # TODO: WRITE FUNCTION TO OPEN JSON IN WRITE MODE FOR UPDATING
-        pass
 
 
     @property  # PERSONAL GARBAGE EXPLICIT DEFINITIONS FOR FUNCTION TESTING
@@ -90,7 +83,7 @@ class VCAccess:
             await ctx.message.channel.send(content='Server id {0} not found. Make sure SESTREN is a member.'.format(gid))
 
 
-    @vca.command(name='rem')
+    @vca.command(aliases=['rem'])
     async def removeguild(self, ctx, gid: int):
         pass
 
@@ -99,11 +92,14 @@ class VCAccess:
         """Messages channel with list of server names VCA is active on."""
         out = '```\nVoice Channel Access control active on the following servers:\n{0}\n'.format('-'*61)
         for g in self.guilds:
-            out += '{0}\n'.format(discord.utils.get(self.bot.guilds, id=int(g)).name)
+            guild = discord.utils.get(self.bot.guilds, id=int(g))
+            out += '{0}\n'.format(guild.name)
             channels = self._data.get(g)
-            # if not len(channels) == 0:
-            #     for c, r in channels:
-            #         out += '- {0} : {1}'.format(c, r)
+            if not len(channels) == 0:
+                for c in channels:
+                    channel = discord.utils.get(guild.channels, id=int(c))
+                    role = discord.utils.get(guild.roles, id=int(channels[c]))
+                    out += '--- {0} : {1}\n'.format(channel.name, role.name)
         else:
             out += '```'
         await ctx.message.channel.send(content=out)
@@ -116,34 +112,40 @@ class VCAccess:
         [p]vca role rem <guild id> <voice channel id>"""
         pass
 
-    @role.command(name='add')
-    async def addrole(self, ctx, role: int):
+    @role.command(aliases=['add'])
+    async def addchannel(self, ctx, channel: int, role: int):
         pass
 
-    @role.command(name='rem')
-    async def removerole(self, ctx, role: int):
+    @role.command(aliases=['rem'])
+    async def removechannel(self, ctx, role: int):
         pass
 
 
     async def on_voice_state_update(self, member, before, after):
-        if member.guild in self.guilds and after.channel.id in channels(member.guild) and not before.channel == after.channel:
-            await self.selfchannel.send(content='True')
-            # await self.channel.send(content='Client {0.name} has changed voice state.\n\
-            # Previous channel: {1.channel}\nNew channel: {2.channel}'.format(member, before, after))
-
-        #     role = discord.utils.get(self.selfguild.roles, id=320707150219444234)
-        #     try:
-        #         if after.channel is not None:
-        #             if "VC - GTA V" not in [r.name for r in member.roles]:
-        #                 await member.add_roles(role)
-        #         else:
-        #             await member.remove_roles(role)
-        #     except:
-        #         with exception as e:
-        #             print(e.__name__, str(e))
-        # else:
-        #     pass
-
+        if after.channel is not None:
+            ag = str(after.channel.guild.id)
+            if ag in self.guilds:
+                ac = str(after.channel.id)
+                if ac in self.channels(ag):
+                    channels = self._data.get(ag)
+                    if ac in channels:
+                        role = discord.utils.get(after.channel.guild.roles, id=int(channels[ac]))
+                        try:
+                            await member.add_roles(role)
+                        except Exception as e:
+                            await self.selfchannel.send(content=str(e))
+        else:
+            bg = str(before.channel.guild.id)
+            if bg in self.guilds:
+                bc = str(before.channel.id)
+                if bc in self.channels(bg):
+                    channels = self._data.get(bg)
+                    if bc in channels:
+                        role = discord.utils.get(before.channel.guild.roles, id=int(channels[bc]))
+                        try:
+                            await member.remove_roles(role)
+                        except Exception as e:
+                            await self.selfchannel.send(content=str(e))
 
 
 def setup(bot):
