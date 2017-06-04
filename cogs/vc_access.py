@@ -61,6 +61,8 @@ class VCAccess:
 
     @commands.command(name='test')
     async def _test(self):
+        # oaurl = discord.utils.oauth_url(client_id='194568954440581120')
+        # await self.selfchannel.send(content='```\n{0}\n```'.format(oaurl))
         await self.selfchannel.send(content='```\n{0}\n```'.format(self.guilds))
 
 
@@ -74,23 +76,37 @@ class VCAccess:
         [p]vca role <subcommand>"""
         pass
 
-    @vca.command(name='add')
+    @vca.command(aliases=['add'])
     async def addguild(self, ctx, gid: int):  # g = discord.Guild.id
-        gstr = str(g)
+        gstr = str(gid)
         gobj = discord.utils.get(self.bot.guilds, id=gid)
         if gobj is not None:
             if gstr in self.guilds:
-                await ctx.message.channel.send(content='VCA already active on {0.name}.'.format(discord.utils.get(self.bot.guilds, id=guild)))
+                await ctx.message.channel.send(content='VCA already active on {0.name}.'.format(gobj))
             else:
-                await _data.put(gid, {})
-                await ctx.message.channel.send(content='VCA now active on {0.name}')
+                await self._data.put(gid, {})
+                await ctx.message.channel.send(content='VCA now active on {0.name}'.format(gobj))
         else:
-            await ctx.message.channel.send(content='gobj was None')
+            await ctx.message.channel.send(content='Server id {0} not found. Make sure SESTREN is a member.'.format(gid))
 
 
     @vca.command(name='rem')
-    async def removeguild(self, ctx, guild: int):
+    async def removeguild(self, ctx, gid: int):
         pass
+
+    @vca.command(aliases=['list'])
+    async def _list(self, ctx, *args):
+        """Messages channel with list of server names VCA is active on."""
+        out = '```\nVoice Channel Access control active on the following servers:\n{0}\n'.format('-'*61)
+        for g in self.guilds:
+            out += '{0}\n'.format(discord.utils.get(self.bot.guilds, id=int(g)).name)
+            channels = self._data.get(g)
+            # if not len(channels) == 0:
+            #     for c, r in channels:
+            #         out += '- {0} : {1}'.format(c, r)
+        else:
+            out += '```'
+        await ctx.message.channel.send(content=out)
 
     @vca.group()
     async def role(self):

@@ -13,7 +13,8 @@ prefix = ["$"]
 
 initial_extensions = [
     "cogs.admin",
-    "cogs.vc_access"
+    "cogs.vc_access",
+    ""
 ]
 
 description = "Testing vc_access"
