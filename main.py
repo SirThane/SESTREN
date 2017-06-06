@@ -12,16 +12,15 @@ import traceback
 prefix = ["$"]
 
 initial_extensions = [
-    "cogs.admin",
-    "cogs.vc_access",
-    ""
+    "admin",
+    "vc_access",
 ]
 
 description = "Testing vc_access"
 
 try:
-    with open('auth.json', 'r+') as json_auth_info:
-        auth = json.load(json_auth_info)
+    with open('auth.json', 'r+') as auth_file:
+        auth = json.load(auth_file)
         token = auth["discord"]["token"]
 except IOError:
     sys.exit("auth.json not found in running directory.")
@@ -49,12 +48,15 @@ async def on_message(message):
 # Starting up
 
 if __name__ == "__main__":
+    print()
     for extension in initial_extensions:
         try:
-            bot.load_extension(extension)
+            print('Loading initial cog {}'.format(extension))
+            bot.load_extension('cogs.{}'.format(extension))
             # log.info("Loaded {}".format(extension))
         except Exception as e:
             # log.warning('Failed to load extension {}\n{}: {}'.format(extension, type(e).__name__, e))
             print('Failed to load extension {}\n{}: {}'.format(extension, type(e).__name__, e))
 
-        bot.run(token, bot=True)
+    print()
+    bot.run(token, bot=True)

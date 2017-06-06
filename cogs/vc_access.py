@@ -55,13 +55,16 @@ class VCAccess:
                 channels = self._data.get(guild)
                 if channel in channels:
                     role = discord.utils.get(voicestate.channel.guild.roles, id=int(channels[channel]))
-                    try:
-                        if add:
-                            await member.add_roles(role)
-                        else:
-                            await member.remove_roles(role)
-                    except Exception as e:
-                        await self.selfchannel.send(content=str(e))
+                    if add:
+                        await member.add_roles(role)
+                    else:
+                        await member.remove_roles(role)
+                        try:
+                            member.roles.remove(role)
+                        except IndexError:
+                            print('Index Error')
+                        except Exception as e:
+                            await self.selfchannel.send(content=str(e))
 
     # async def removerole(self, member, voicestate):
     #     bg = str(voicestate.channel.guild.id)
@@ -163,10 +166,11 @@ class VCAccess:
         if g is not None and c is not None and r is not None:
             if guild not in self.guilds:
                 await self._data.put(guild, {})
-                await ctx.message.channel.send(content='VCA is now active on {0.name}'.format(g))
+                await ctx.message.channel.send(content='VCA is now active on `{0}`'.format(g))
             d = self._data.get(guild)
             d[channel] = role
             await self._data.put(guild, d)
+            await ctx.message.channel.send(content='VCA is now active on channel `{0}` for role `{1}`'.format(c, r))
 
     @chan.command(aliases=['rem'])
     async def _removechannel(self, ctx, channel: str):
@@ -178,9 +182,9 @@ class VCAccess:
                     c = discord.utils.get(g.voice_channels, id=int(channel))
                     del d[channel]
                     await self._data.put(guild, d)
-                    await ctx.message.channel.send(content='{0} has been removed from VCA.'.format(c))
+                    await ctx.message.channel.send(content='`{0}` has been removed from VCA.'.format(c))
         else:
-            ctx.message.channel.send(content='Cannot find channel in VCA.')
+            ctx.message.channel.send(content='Cannot find channel id `{0}` in VCA.'.format(channel))
 
 
     async def on_voice_state_update(self, member, before, after):
