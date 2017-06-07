@@ -5,7 +5,7 @@ Currently a test bot.
 import json
 import sys
 from discord.ext import commands
-import discord
+# import discord
 import asyncio
 import traceback
 
