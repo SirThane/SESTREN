@@ -27,6 +27,10 @@ class General:
         if member is None:
             member = ctx.message.author
 
+        roles = str([r.name for r in member.roles if '@everyone' not in r.name]).strip('[]').replace(', ', '\n').replace("'", '')
+        if roles == '':
+            roles = 'User has no assigned roles.'
+
         emb = {
             'embed': {
                 'title': 'User Information For:',
@@ -50,7 +54,7 @@ class General:
                 },
                 {
                     'name': 'Roles:',
-                    'value': str([r.name for r in member.roles if '@everyone' not in r.name]).strip('[]').replace(', ', '\n').replace("'", ''),
+                    'value': roles,
                     'inline': False
                 },
                 {
