@@ -12,8 +12,17 @@ class General:
 
     @commands.command(aliases=['getuserinfo', 'userinfo'], no_private=True)
     async def _getuserinfo(self, ctx, member: discord.Member=None):
+        """Gets current server information for a given user
 
-        import datetime
+        Usage:  $userinfo @user
+                $userinfo username#discrim
+                $userinfo userid
+
+        Issues: Some special characters cause problems when
+                using un#dis. For those, mention or userid
+                should still work."""
+
+        from datetime import datetime
 
         if member is None:
             member = ctx.message.author
@@ -57,7 +66,7 @@ class General:
             ],
             'footer': {
                 'text': 'Invoked by {0.name}#{0.discriminator} || {1}\
-                        '.format(ctx.message.author, datetime.datetime.utcnow().strftime("%b. %d, %Y %I:%M %p")),
+                        '.format(ctx.message.author, datetime.utcnow().strftime("%b. %d, %Y %I:%M %p")),
                 'icon_url': ctx.message.author.avatar_url
             }
         }
