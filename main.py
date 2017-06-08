@@ -14,6 +14,7 @@ prefix = ["$"]
 initial_extensions = [
     "admin",
     "vc_access",
+    "general"
 ]
 
 description = "Testing vc_access"
