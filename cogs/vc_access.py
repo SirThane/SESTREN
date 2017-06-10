@@ -62,39 +62,9 @@ class VCAccess:
                         try:
                             member.roles.remove(role)
                         except IndexError:
-                            print('Index Error')
-                        except Exception as e:
-                            await self.selfchannel.send(content=str(e))
-
-    # async def removerole(self, member, voicestate):
-    #     bg = str(voicestate.channel.guild.id)
-    #     if bg in self.guilds:
-    #         bc = str(voicestate.channel.id)
-    #         if bc in self.channels:
-    #             channels = self._data.get(bg)
-    #             if bc in channels:
-    #                 role = discord.utils.get(voicestate.channel.guild.roles, id=int(channels[bc]))
-    #                 try:
-    #                     await member.remove_roles(role)
-    #                 except Exception as e:
-    #                     await self.selfchannel.send(content=str(e))
-
-######################################################################################
-    @property  # PERSONAL GARBAGE EXPLICIT DEFINITIONS FOR FUNCTION TESTING
-    def selfguild(self):
-        return self.bot.get_guild(184502171117551617)
-
-    @property
-    def selfchannel(self):
-        return discord.Guild.get_channel(self.selfguild, 315232431835709441)
-
-    @commands.command(name='test')
-    async def _test(self):
-        # oaurl = discord.utils.oauth_url(client_id='194568954440581120')
-        # await self.selfchannel.send(content='```\n{0}\n```'.format(oaurl))
-        await self.selfchannel.send(content='```\n{0}\n```'.format(self.channels))
-######################################################################################
-
+                            pass
+                        except ValueError as e:
+                            pass
 
     @commands.group()
     async def vca(self):
@@ -196,32 +166,6 @@ class VCAccess:
         elif a is not None and b is not None:
             await self.modifyrole(member, before, False)
             await self.modifyrole(member, after)
-
-
-            # if after.channel is not None:
-            #     ag = str(after.channel.guild.id)
-            #     if ag in self.guilds:
-            #         ac = str(after.channel.id)
-            #         if ac in self.channels:
-            #             channels = self._data.get(ag)
-            #             if ac in channels:
-            #                 role = discord.utils.get(after.channel.guild.roles, id=int(channels[ac]))
-            #                 try:
-            #                     await member.add_roles(role)
-            #                 except Exception as e:
-            #                     await self.selfchannel.send(content=str(e))
-            # else:
-                # bg = str(before.channel.guild.id)
-                # if bg in self.guilds:
-                #     bc = str(before.channel.id)
-                #     if bc in self.channels:
-                #         channels = self._data.get(bg)
-                #         if bc in channels:
-                #             role = discord.utils.get(before.channel.guild.roles, id=int(channels[bc]))
-                #             try:
-                #                 await member.remove_roles(role)
-                #             except Exception as e:
-                #                 await self.selfchannel.send(content=str(e))
 
 
 def setup(bot):
