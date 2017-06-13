@@ -36,7 +36,7 @@ description = "Personal bot for Thane"
 try:
     with open('auth.json', 'r+') as auth_file:
         auth = json.load(auth_file)
-        token = auth["discord"]["token"]
+        token = auth["prod"]
 except IOError:
     sys.exit("auth.json not found in running directory.")
 
@@ -47,20 +47,25 @@ bot = commands.Bot(command_prefix=prefix, description=description, pm_help=False
 async def on_command_error(ctx, error):
     if isinstance(error, commands.NoPrivateMessage):
         await ctx.message.channel.send(content='This command cannot be used in private messages.')
+
     elif isinstance(error, commands.DisabledCommand):
         await ctx.message.channel.send(content='This command is disabled and cannot be used.')
+
     elif isinstance(error, commands.MissingRequiredArgument):
-        help_formatter = help.HelpFormatter
-        await ctx.message.channel.send(content=\
-            "You are missing required arguments.\n{}".format(help_formatter.format_help_for(ctx, ctx.command)))
+        _help = bot.formatter
+        await ctx.message.channel.send(content="You are missing required arguments.\n")  #{}"
+                                    # "".format(_help.format_help_for(ctx, ctx.command if not None else bot)))
+
     elif isinstance(error, commands.CommandNotFound):
         await ctx.message.channel.send(content="Command not found")
+
     elif isinstance(error, commands.CommandInvokeError):
         print('In {0.command.qualified_name}:'.format(ctx), file=sys.stderr)
         print('{0.__class__.__name__}: {0}'.format(error.original), file=sys.stderr)
         traceback.print_tb(error.__traceback__, file=sys.stderr)
         log.error('In {0.command.qualified_name}:'.format(ctx))
         log.error('{0.__class__.__name__}: {0}'.format(error.original))
+
     else:
         traceback.print_tb(error.original.__traceback__, file=sys.stderr)
 
