@@ -71,7 +71,7 @@ class HelpFormatter(formatter.HelpFormatter):
                 # skip aliases
                 continue
 
-            entries += '- **{0}**: {1}\n'.format(name, command.short_doc)
+            entries += '{0}**{1}** :   {2}\n'.format(self.clean_prefix, name, command.short_doc)
         return entries
             # shortened = self.shorten(entry)
             # self._paginator.add_line(shortened)
@@ -87,7 +87,7 @@ class HelpFormatter(formatter.HelpFormatter):
             A paginated output of the help command.
         """
         # self._paginator = Paginator()
-        emb = emb_template
+        emb = emb_template.copy()
 
         emb['embed']['color'] = 0x00FF00  # self.bot.user.color
 
@@ -187,7 +187,7 @@ class Help:
         """
         self.context = context
         self.command = command_or_bot
-        return await self.bot.formatter.format()
+        return await self.bot.formatter.format(context, self.command)
 
     @commands.command(name='help', aliases=['h'])
     async def help(self, ctx, *cmds: str):
