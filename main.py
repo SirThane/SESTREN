@@ -5,19 +5,33 @@ Currently a test bot.
 import json
 import sys
 from discord.ext import commands
-# import discord
+import discord
+from cogs.utils import help
 import asyncio
 import traceback
+import logging
+
+loop = asyncio.get_event_loop()
+
+log = logging.getLogger()
+log.setLevel(logging.DEBUG)
+handler = logging.FileHandler(filename='SESTREN.log', encoding='utf-8', mode='a')
+formatter = logging.Formatter("{asctime} - {levelname} - {message}", style="{")
+handler.setFormatter(formatter)
+log.addHandler(handler)
+
+log.info("Instance started.")
 
 prefix = ["$"]
 
 initial_extensions = [
     "admin",
     "general",
-    "vc_access"
+    "vcaccess",
+    # "utils.help"
 ]
 
-description = "Testing vc_access"
+description = "Personal bot for Thane"
 
 try:
     with open('auth.json', 'r+') as auth_file:
@@ -30,10 +44,33 @@ bot = commands.Bot(command_prefix=prefix, description=description, pm_help=False
 
 
 @bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.NoPrivateMessage):
+        await ctx.message.channel.send(content='This command cannot be used in private messages.')
+    elif isinstance(error, commands.DisabledCommand):
+        await ctx.message.channel.send(content='This command is disabled and cannot be used.')
+    elif isinstance(error, commands.MissingRequiredArgument):
+        help_formatter = help.HelpFormatter
+        await ctx.message.channel.send(content=\
+            "You are missing required arguments.\n{}".format(help_formatter.format_help_for(ctx, ctx.command)))
+    elif isinstance(error, commands.CommandNotFound):
+        await ctx.message.channel.send(content="Command not found")
+    elif isinstance(error, commands.CommandInvokeError):
+        print('In {0.command.qualified_name}:'.format(ctx), file=sys.stderr)
+        print('{0.__class__.__name__}: {0}'.format(error.original), file=sys.stderr)
+        traceback.print_tb(error.__traceback__, file=sys.stderr)
+        log.error('In {0.command.qualified_name}:'.format(ctx))
+        log.error('{0.__class__.__name__}: {0}'.format(error.original))
+    else:
+        traceback.print_tb(error.original.__traceback__, file=sys.stderr)
+
+
+@bot.event
 async def on_ready():
     print('Logged in as')
     print(bot.user.name)
     print(bot.user.id)
+    print(discord.utils.oauth_url(bot.user.id))
     # log.info("Initialized.")
 
     print('------')

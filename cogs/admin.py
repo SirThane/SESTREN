@@ -34,6 +34,21 @@ class Admin:
         self.bot = bot
         # self.config = bot.config
 
+    def env(self, ctx):
+        import random
+        environment = {
+            'bot': self.bot,
+            'ctx': ctx,
+            'message': ctx.message,
+            'guild': ctx.message.guild,
+            'channel': ctx.message.channel,
+            'author': ctx.message.author,
+            'discord': discord,
+            'random': random
+        }
+        environment.update(globals())
+        return environment
+
     @commands.command(hidden=True)
     async def load(self, ctx, *, cog: str, verbose: bool=False):
         """load a module"""
@@ -77,12 +92,12 @@ class Admin:
     @commands.command(hidden=True, name='await')
     async def _await(self, ctx, *, code):
 
+        env = self.env(ctx)
+
         try:
             await eval(code)
         except Exception as e:
             await ctx.send(str(e))
-        else:
-            await ctx.message.delete()
 
     # Thanks to rapptz
     @checks.sudo()
@@ -92,18 +107,7 @@ class Admin:
 
         code = code.strip('` ')
         python = '```py\n{0}\n```'
-        env = {
-            'bot': self.bot,
-            'ctx': ctx,
-            'message': ctx.message,
-            'guild': ctx.message.guild,
-            'channel': ctx.message.channel,
-            'author': ctx.message.author,
-            'discord': discord,
-            'random': random
-        }
-
-        env.update(globals())
+        env = self.env(ctx)
 
         try:
             result = eval(code, env)
@@ -140,17 +144,7 @@ class Admin:
         code = code.strip('```\n ')
         python = '```py\n{0}\n```'
 
-        env = {
-            'bot': self.bot,
-            'ctx': ctx,
-            'message': ctx.message,
-            'guild': ctx.message.guild,
-            'channel': ctx.message.channel,
-            'author': ctx.message.author,
-            'discord': discord,
-        }
-
-        env.update(globals())
+        env = self.env(ctx)
 
         try:
             with stdoutio() as s:

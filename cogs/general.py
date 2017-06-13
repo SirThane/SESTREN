@@ -10,8 +10,8 @@ class General:
 
         self.bot = bot
 
-    @commands.command(aliases=['getuserinfo', 'userinfo'], no_private=True)
-    async def _getuserinfo(self, ctx, member: discord.Member=None):
+    @commands.command(name='userinfo', no_private=True)
+    async def userinfo(self, ctx, member: discord.Member=None):
         """Gets current server information for a given user
 
         Usage:  $userinfo @user
