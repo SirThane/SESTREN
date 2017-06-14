@@ -73,10 +73,6 @@ class HelpFormatter(formatter.HelpFormatter):
                 'title': '',
                 'description': '',
             },
-            'author': {
-                'name': '{0.display_name} Help Manual'.format(self.bot.user),
-                'icon_url': self.bot.user.avatar_url_as(format='jpeg')
-            },
             'footer': {
                 'text': self.get_ending_note()
             },
@@ -177,17 +173,17 @@ class Help:
         self.command = command_or_bot
         return await self.bot.formatter.format(context, self.command)
 
-    def simple_embed(self, title=None, description=None, color=0):
+    def simple_embed(self, title=None, description=None, color=0, author=None):
         embed = discord.Embed(title=title, description=description, color=color)
         embed.set_footer(text=self.bot.formatter.get_ending_note())
-        embed.set_author(name='{0.display_name} Help Manual'.format(self.bot.user),
-                         icon_url=self.bot.user.avatar_url_as(format='jpeg'))
+        if author:
+            embed.set_author(**author)
         return embed
 
     def cmd_not_found(self, cmd, color=0):
         embed = self.simple_embed(title=self.bot.command_not_found.format(cmd),
                                   description='Commands are case sensitive. Please check your spelling and try again',
-                                  color=color)
+                                  color=color, author=self.author)
         return embed
 
     @commands.command(name='help')
@@ -201,6 +197,11 @@ class Help:
         [p]**help** Category: Show commands and description for a category"""
         bot = self.bot
         color = ctx.me.color
+        name = ctx.guild.me.display_name if not '' else bot.user.name
+        self.author = {
+                'name': '{0} Help Manual'.format(name),
+                'icon_url': self.bot.user.avatar_url_as(format='jpeg')
+            }
         destination = ctx.message.author if bot.pm_help else ctx.message.channel
 
         def repl(obj):
@@ -251,7 +252,7 @@ class Help:
 
         embed = discord.Embed(color=color, **emb_dict['embed'])
         # if len(emb_dict['author']) > 0:
-        embed.set_author(**emb_dict['author'])
+        embed.set_author(**self.author)
         for field in emb_dict['fields']:
             embed.add_field(**field)
         embed.set_footer(**emb_dict['footer'])
