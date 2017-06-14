@@ -5,22 +5,18 @@ from discord.ext import commands
 
 
 class General:
+    """General use and utility commands."""
 
     def __init__(self, bot):
-
         self.bot = bot
 
     @commands.command(name='userinfo', no_private=True)
     async def userinfo(self, ctx, member: discord.Member=None):
         """Gets current server information for a given user
 
-        Usage:  $userinfo @user
-                $userinfo username#discrim
-                $userinfo userid
-
-        Issues: Some special characters cause problems when
-                using un#dis. For those, mention or userid
-                should still work."""
+         [p]userinfo @user
+         [p]userinfo username#discrim
+         [p]userinfo userid"""
 
         from datetime import datetime
 
@@ -85,11 +81,8 @@ class General:
         await ctx.channel.send(embed=embed)
 
     @commands.command(name='ping')
-    async def ping(self, ctx, *args):
-        """Ping
-
-        [p]ping
-        Pongs"""
+    async def ping(self, ctx):
+        """Your basic `ping`"""
         await ctx.send('pong')
 
 

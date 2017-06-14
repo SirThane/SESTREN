@@ -28,7 +28,7 @@ initial_extensions = [
     "admin",
     "general",
     "vcaccess",
-    "utils.help"
+    # "utils.help"
 ]
 
 description = "Personal bot for Thane"

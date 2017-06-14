@@ -16,26 +16,6 @@ import inspect
 import itertools
 
 
-emb_template = {
-    'embed': {
-        'title': '',
-        'description': '',
-        'color': 0,
-    },
-    'author': {
-        'name': '',
-        'icon_url': '',
-        'url': ''
-    },
-    'footer': {
-        'text': ''
-    },
-    'fields': [
-
-    ],
-}
-
-
 _mentions_transforms = {
     '@everyone': '@\u200beveryone',
     '@here': '@\u200bhere'
@@ -43,18 +23,6 @@ _mentions_transforms = {
 
 
 _mention_pattern = re.compile('|'.join(_mentions_transforms.keys()))
-
-
-class Dummy(formatter.HelpFormatter):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-
-class Paginator(formatter.Paginator):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
 
 
 class HelpFormatter(formatter.HelpFormatter):
@@ -76,6 +44,20 @@ class HelpFormatter(formatter.HelpFormatter):
             # shortened = self.shorten(entry)
             # self._paginator.add_line(shortened)
 
+    def paginate(self, value):
+        spl = value.split('\n')
+        ret = []
+        string = ''
+        for i in spl:
+            if len(string) + len(i) < 1023:
+                string = '{0}{1}\n'.format(string, i)
+            else:
+                ret.append(string)
+                string = '{0}'.format(i)
+        else:
+            ret.append(string)
+        return ret
+
     async def format(self):
         """Handles the actual behaviour involved with formatting.
 
@@ -86,10 +68,20 @@ class HelpFormatter(formatter.HelpFormatter):
         list
             A paginated output of the help command.
         """
-        # self._paginator = Paginator()
-        emb = emb_template.copy()
-
-        emb['embed']['color'] = 0x00FF00  # self.bot.user.color
+        emb = {
+            'embed': {
+                'title': '',
+                'description': '',
+            },
+            'author': {
+                'name': '{0.display_name} Help Manual'.format(self.bot.user),
+                'icon_url': self.bot.user.avatar_url_as(format='jpeg')
+            },
+            'footer': {
+                'text': ''
+            },
+            'fields': []
+        }
 
         # we need a padding of ~80 or so
 
@@ -98,20 +90,22 @@ class HelpFormatter(formatter.HelpFormatter):
         if description:
             # <description> portion
             # self._paginator.add_line(description, empty=True)
-            emb['embed']['title'] = description
+            emb['embed']['description'] = description
 
         if isinstance(self.command, discord.ext.commands.core.Command):
             # <signature portion>
-            signature = self.get_command_signature()
+            # signature = self.get_command_signature()
             # self._paginator.add_line(signature, empty=True)
-            emb['embed']['description'] = signature
+            emb['embed']['title'] = '{0}'.format(self.get_command_signature())
 
             # <long doc> section
             if self.command.help:
                 # self._paginator.add_line(self.command.help, empty=True)
-                name = '- {}'.format(self.command.help.split('\n\n')[0])
-                name_length = len(name)
+                name = '__{0}__'.format(self.command.help.split('\n\n')[0])
+                name_length = len(name) - 4
                 value = self.command.help[name_length:].replace('[p]', self.clean_prefix)
+                if value == '':
+                    value = '{0}{1}'.format(self.clean_prefix, self.command.name)
                 field = {
                     'name': name,
                     'value': value,
@@ -153,8 +147,14 @@ class HelpFormatter(formatter.HelpFormatter):
         else:
             filtered = sorted(filtered)
             if filtered:
-                self._paginator.add_line('Commands:')
-                self._add_subcommands_to_page(max_width, filtered)
+                field = {
+                    'name': 'Commands:',
+                    'value': self._add_subcommands_to_page(max_width, filtered),
+                    'inline': False
+                }
+
+                emb['fields'].append(field)
+
 
         # add the ending note
         emb['footer']['text'] = self.get_ending_note()
@@ -191,7 +191,16 @@ class Help:
 
     @commands.command(name='help', aliases=['h'])
     async def help(self, ctx, *cmds: str):
-        """Shows this message."""
+        """Shows help documentation.
+
+        [p]**help**
+        Shows the help manual.
+
+        [p]**help** command:
+        Show help for a command
+
+        [p]**help** Category:
+        Show commands and description for a category"""
         bot = self.bot
         destination = ctx.message.author if bot.pm_help else ctx.message.channel
 
@@ -240,9 +249,9 @@ class Help:
         #     if characters > 1000:
         #         destination = ctx.message.author
 
-        embed = discord.Embed(**emb_dict['embed'])
-        embed.set_author(name='{0.display_name}'.format(self.bot.user),
-                         icon_url=self.bot.user.avatar_url_as(format='jpeg'))
+        embed = discord.Embed(color=ctx.me.color, **emb_dict['embed'])
+        if len(emb_dict['author']) > 0:
+            embed.set_author(**emb_dict['author'])
         for field in emb_dict['fields']:
             embed.add_field(**field)
         embed.set_footer(**emb_dict['footer'])
