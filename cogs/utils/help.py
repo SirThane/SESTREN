@@ -39,7 +39,7 @@ class HelpFormatter(formatter.HelpFormatter):
                 # skip aliases
                 continue
 
-            entries += '{0}**{1}** :   {2}\n'.format(self.clean_prefix, name, command.short_doc)
+            entries += '{0}**{1} :**   {2}\n'.format(self.clean_prefix, name, command.short_doc)
         return entries
             # shortened = self.shorten(entry)
             # self._paginator.add_line(shortened)
@@ -86,6 +86,8 @@ class HelpFormatter(formatter.HelpFormatter):
         # we need a padding of ~80 or so
 
         description = self.command.description if not self.is_cog() else inspect.getdoc(self.command)
+        if not description == '':
+            description = '*{0}*'.format(description)
 
         if description:
             # <description> portion
@@ -96,7 +98,7 @@ class HelpFormatter(formatter.HelpFormatter):
             # <signature portion>
             # signature = self.get_command_signature()
             # self._paginator.add_line(signature, empty=True)
-            emb['embed']['title'] = '{0}'.format(self.get_command_signature())
+            emb['embed']['title'] = 'Syntax: {0}'.format(self.get_command_signature())
 
             # <long doc> section
             if self.command.help:
@@ -111,7 +113,7 @@ class HelpFormatter(formatter.HelpFormatter):
                     'value': value,
                     'inline': False
                 }
-                emb['fields'].append(field)  # TODO: Handle if value == ''
+                emb['fields'].append(field)
 
             # end it here if it's just a regular command
             if not self.has_subcommands():
@@ -154,7 +156,6 @@ class HelpFormatter(formatter.HelpFormatter):
                 }
 
                 emb['fields'].append(field)
-
 
         # add the ending note
         emb['footer']['text'] = self.get_ending_note()
