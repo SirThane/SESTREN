@@ -40,7 +40,7 @@ try:
 except IOError:
     sys.exit("auth.json not found in running directory.")
 
-bot = commands.Bot(command_prefix=prefix, description=description, pm_help=False, self_bot=False)
+bot = commands.Bot(command_prefix=prefix, description=description, pm_help=None, self_bot=False)
 
 
 @bot.event
