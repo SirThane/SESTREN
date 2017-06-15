@@ -40,8 +40,7 @@ try:
 except IOError:
     sys.exit("auth.json not found in running directory.")
 
-bot = commands.Bot(command_prefix=prefix, description=description, pm_help=None, self_bot=False)
-
+bot = commands.Bot(command_prefix=prefix, description=description, pm_help=False, self_bot=False)
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -52,9 +51,8 @@ async def on_command_error(ctx, error):
         await ctx.message.channel.send(content='This command is disabled and cannot be used.')
 
     elif isinstance(error, commands.MissingRequiredArgument):
-        _help = bot.formatter
-        await ctx.message.channel.send(content="You are missing required arguments.\n")  #{}"
-                                    # "".format(_help.format_help_for(ctx, ctx.command if not None else bot)))
+        await ctx.message.channel.send(content="You are missing required arguments.\n")
+        #{}.format(bot.help_formatter.format_help_for(ctx, ctx.command if not None else bot)))
 
     elif isinstance(error, commands.CommandNotFound):
         await ctx.message.channel.send(content="Command not found")

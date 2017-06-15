@@ -1,6 +1,8 @@
 """
-Administrative commands for pory. A lot of them used from my HockeyBot,
-which in turn were mostly from Danny.
+Mostly stolen from Luc:
+    Administrative commands for pory. A lot of them used from my HockeyBot,
+    which in turn were mostly from Danny.
+
 Copyright (c) 2015 Rapptz
 """
 from discord.ext import commands
@@ -175,6 +177,20 @@ class Admin:
 
         await ctx.message.delete()
         await ctx.send(embed=embed)
+
+    @commands.command(name='game', hidden=True)
+    async def game(self, ctx, *, game: str=None):
+        """
+        Changes status to 'Playing <game>'
+
+        [p]game string"""
+        if game:
+            await self.bot.change_presence(game=discord.Game(name=game))
+        else:
+            await self.bot.change_presence(game=discord.Game(name=game))
+        await ctx.message.edit('Presence updated.')
+        sleep(5)
+        await ctx.message.delete
 
     # @commands.command(hidden=True, name='set_config')
     # async def _set_config(self, ctx, key: str, value: str):

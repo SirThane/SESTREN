@@ -34,7 +34,7 @@ class HelpFormatter(formatter.HelpFormatter):
         self.bot.formatter = self
         super().__init__(*args, **kwargs)
 
-    def _add_subcommands_to_page(self, max_width, cmds):
+    def _add_subcommands_to_page(self, cmds):
         entries = ''
         for name, command in cmds:
             if name in command.aliases:
@@ -114,16 +114,19 @@ class HelpFormatter(formatter.HelpFormatter):
             if not self.has_subcommands():
                 return emb
 
+        # Review if needed. Inspect errors if not used because it doesn't match inher
         max_width = self.max_name_size
 
         def category(tup):
+            # Turn get cog (Category) name from cog/list tuples
             cog = tup[1].cog_name
-            # we insert the zero width space there to give it approximate
-            # last place sorting position.
             return '**{}:**'.format(cog) if cog is not None else '\u200bNo Category:'
 
+        # Get subcommands for bot or category
         filtered = await self.filter_command_list()
+
         if self.is_bot():
+            # Get list of non-hidden commands for bot.
             data = sorted(filtered, key=category)
             for category, commands in itertools.groupby(data, key=category):
                 # there simply is no prettier way of doing this.
@@ -133,15 +136,16 @@ class HelpFormatter(formatter.HelpFormatter):
                 commands = sorted(commands)
                 if len(commands) > 0:
                     field['name'] = category
-                    field['value'] = self._add_subcommands_to_page(max_width, commands)
+                    field['value'] = self._add_subcommands_to_page(commands)  # May need paginated
                     emb['fields'].append(field)
 
         else:
+            # Get list of commands for category
             filtered = sorted(filtered)
             if filtered:
                 field = {
                     'name': 'Commands:',
-                    'value': self._add_subcommands_to_page(max_width, filtered),
+                    'value': self._add_subcommands_to_page(filtered),  # May need paginated
                     'inline': False
                 }
 
@@ -179,6 +183,7 @@ class Help:
         return await self.bot.formatter.format(self.ctx, self.command)
 
     def simple_embed(self, title=None, description=None, color=None, author=None):
+        # Shortcut
         embed = discord.Embed(title=title, description=description, color=color)
         embed.set_footer(text=self.bot.formatter.get_ending_note())
         if author:
@@ -186,6 +191,7 @@ class Help:
         return embed
 
     def cmd_not_found(self, cmd, color=0):
+        # Shortcut for a shortcut. Sue me
         embed = self.simple_embed(title=self.bot.command_not_found.format(cmd),
                                   description='Commands are case sensitive. Please check your spelling and try again',
                                   color=color, author=self.author)
