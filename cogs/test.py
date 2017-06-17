@@ -64,6 +64,48 @@ class Test:
         #     h = _hex(*c)
         #     print(hex(h))
 
+    def paginate(self, value):
+        """
+        To paginate a string into a list of strings under
+        'lim' characters to meet discord.Embed field value
+        hard limits. Currently not used until testing has
+        been done on whether it is needed.
+        :param value: string to paginate
+        :return list: list of strings under 'lim' chars
+        """
+        lim = 1024
+        spl = value.split('\n')
+        ret = []
+        string = ''
+        for i in spl:
+            if len(string) + len(i) < (lim - 1):
+                string = '{0}{1}\n'.format(string, i)
+            else:
+                ret.append(string)
+                string = '{0}'.format(i)
+        else:
+            ret.append(string)
+        return ret
+
+    @commands.command(name='pagtest')
+    async def pagtest(self, ctx):
+        value = """Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
+Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.
+Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.
+Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur?
+Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?"""
+        pag = self.paginate(value)
+        em = discord.Embed(title='Pagination Test:', color=discord.Colour.green())
+        c = 1
+        for i in pag:
+            em.add_field(name='Field {}'.format(c), value=i)
+            c += 1
+        await ctx.send(embed=em)
+
 
 def setup(bot):
     bot.add_cog(Test(bot))

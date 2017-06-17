@@ -47,22 +47,24 @@ class HelpFormatter(formatter.HelpFormatter):
     def paginate(self, value):
         """
         To paginate a string into a list of strings under
-        1024 characters to meet discord.Embed field value
+        'lim' characters to meet discord.Embed field value
         hard limits. Currently not used until testing has
-        been done on whether it is needed.
+        been done on whether it is needed. Tries to
+        respect line returns.
 
         :param value: string to paginate
-        :return: list: list of strings under 1024 chars
+        :return list: list of strings under 'lim' chars
         """
+        lim = 1024
         spl = value.split('\n')
         ret = []
         string = ''
         for i in spl:
-            if len(string) + len(i) < 1023:
+            if len(string) + len(i) < (lim - 1):
                 string = '{0}{1}\n'.format(string, i)
             else:
                 ret.append(string)
-                string = '{0}'.format(i)
+                string = '{0}\n'.format(i)  # TODO: HANDLE STRINGS LONGER THAN 1024
         else:
             ret.append(string)
         return ret

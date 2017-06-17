@@ -175,7 +175,6 @@ class VCAccess:
         else:
             ctx.message.channel.send(content='Cannot find channel id `{0}` in VCA.'.format(channel))
 
-
     async def on_voice_state_update(self, member, before, after):
         b, a = before.channel, after.channel
         if a is not None and b is None:

@@ -85,6 +85,27 @@ class General:
         """Your basic `ping`"""
         await ctx.send('pong')
 
+    @commands.command(name='discrim')
+    async def discrim(self, ctx, *, member: discord.Member=None):
+        """Finds a username that you can use to change discriminator
+
+        [p]discrim"""
+        if not member:
+            member = ctx.author
+
+        d = member.discriminator
+        f = discord.utils.find(lambda x: x.discriminator == d and not x.id == member.id,
+                               self.bot.get_all_members())
+        if f is not None:
+            em = discord.Embed(title="Discrim",
+                               description="Change your name to `{}` and then back to `{}` to get a new discriminator"
+                                           "".format(f.name, member.name), colour=0x00FF00)
+            await ctx.send(embed=em)
+        else:
+            em = discord.Embed(title="Sorry",
+                               description="I couldn't find another person with your discriminator", colour=0xFF0000)
+            await ctx.send(embed=em)
+
 
 def setup(bot):
     bot.add_cog(General(bot))

@@ -157,11 +157,11 @@ class HelpFormatter(formatter.HelpFormatter):
 
 class Help(formatter.HelpFormatter):
 
-    def __init__(self, bot):
+    def __init__(self, bot, *args, **kwargs):
         self.bot = bot
         self.bot.remove_command('help')
         self.bot.formatter = self
-        # super().__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         # self.bot.formatter = HelpFormatter(bot)
 
     def _add_subcommands(self, cmds):
@@ -177,18 +177,19 @@ class Help(formatter.HelpFormatter):
     def paginate(self, value):
         """
         To paginate a string into a list of strings under
-        1024 characters to meet discord.Embed field value
+        'lim' characters to meet discord.Embed field value
         hard limits. Currently not used until testing has
         been done on whether it is needed.
 
         :param value: string to paginate
-        :return: list: list of strings under 1024 chars
+        :return list: list of strings under 'lim' chars
         """
+        lim = 1024
         spl = value.split('\n')
         ret = []
         string = ''
         for i in spl:
-            if len(string) + len(i) < 1023:
+            if len(string) + len(i) < (lim - 1):
                 string = '{0}{1}\n'.format(string, i)
             else:
                 ret.append(string)
