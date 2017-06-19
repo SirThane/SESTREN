@@ -26,9 +26,9 @@ prefix = ["$"]
 
 initial_extensions = [
     "admin",
-    "general",
-    "vcaccess",
-    "utils.help"
+    # "general",
+    # "vcaccess",
+    "utils.help-t"
 ]
 
 description = "Personal bot for Thane"
