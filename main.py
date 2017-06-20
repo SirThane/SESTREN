@@ -1,5 +1,6 @@
 """
 Currently a test bot.
+Still a test bot
 """
 
 import json
@@ -30,7 +31,7 @@ initial_extensions = [
     "utils.help"
 ]
 
-description = "Personal bot for Thane"
+description = "Thane's bot for testing and building cogs."
 
 try:
     with open('auth.json', 'r+') as auth_file:
