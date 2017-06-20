@@ -79,7 +79,7 @@ class Help(formatter.HelpFormatter):
                 # skip aliases
                 continue
 
-            entries += '**{0}{1} :**   {2}\n'.format(self.clean_prefix, name, command.short_doc)
+            entries += '**{0}{1}:**   {2}\n'.format(self.clean_prefix, name, command.short_doc)
         return entries
 
     def paginate(self, value):
@@ -158,7 +158,7 @@ class Help(formatter.HelpFormatter):
         def category(tup):
             # Turn get cog (Category) name from cog/list tuples
             cog = tup[1].cog_name
-            return '**{}:**'.format(cog) if cog is not None else '\u200bNo Category:'
+            return '**__{}:__**'.format(cog) if cog is not None else '\u200bNo Category:'
 
         # Get subcommands for bot or category
         filtered = await self.filter_command_list()
@@ -182,7 +182,7 @@ class Help(formatter.HelpFormatter):
             filtered = sorted(filtered)
             if filtered:
                 field = {
-                    'name': 'Commands:',
+                    'name': '**__Commands:__**',
                     'value': self._add_subcommands(filtered),  # May need paginated
                     'inline': False
                 }
