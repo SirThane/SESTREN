@@ -44,7 +44,6 @@ bot = commands.Bot(command_prefix=prefix, description=description, pm_help=False
 
 @bot.event
 async def on_command_error(ctx, error):
-    await bot.formatter.format_help_for(ctx, ctx.command if not None else bot)
     if isinstance(error, commands.NoPrivateMessage):
         await ctx.message.channel.send(content='This command cannot be used in private messages.')
 

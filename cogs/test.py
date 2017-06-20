@@ -26,9 +26,9 @@ class Test:
 
     @test.command(name='t2')
     async def t2(self, ctx, *, arg):
-        """T2 test subcommand
-
-        [p]test t2 does even more nothing"""
+        # """T2 test subcommand
+        #
+        # [p]test t2 does even more nothing"""
         pass
 
     @commands.command(name='countdown')
