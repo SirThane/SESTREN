@@ -6,6 +6,13 @@ Most of the code stolen from
 discord.ext.commands.formatter.py and
 converted into embeds instead of codeblocks.
 
+Docstr on cog class becomes category.
+Docstr on command definition becomes command
+summary and usage.
+Use [p] in command docstr for bot prefix.
+
+See [p]help here for example.
+
 discord.py 1.0.0a
 
 Copyrights to logic of code belong to Rapptz (Danny)"""
@@ -31,6 +38,7 @@ _mention_pattern = re.compile('|'.join(_mentions_transforms.keys()))
 
 
 class Help(formatter.HelpFormatter):
+    """Formats help for commands."""
 
     def __init__(self, bot, *args, **kwargs):
         self.bot = bot
@@ -226,7 +234,7 @@ class Help(formatter.HelpFormatter):
                                   color=color, author=self.author)
         return embed
 
-    @commands.command(name='help', hidden=True)
+    @commands.command(name='help')
     async def help(self, ctx, *cmds: str):
         """Shows help documentation.
 

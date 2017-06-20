@@ -6,7 +6,6 @@ import json
 import sys
 from discord.ext import commands
 import discord
-from cogs.utils import help
 import asyncio
 import traceback
 import logging
