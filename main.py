@@ -26,9 +26,9 @@ prefix = ["$"]
 
 initial_extensions = [
     "admin",
-    # "general",
-    # "vcaccess",
-    "utils.help-t"
+    "general",
+    "vcaccess",
+    "utils.help"
 ]
 
 description = "Personal bot for Thane"
@@ -44,6 +44,7 @@ bot = commands.Bot(command_prefix=prefix, description=description, pm_help=False
 
 @bot.event
 async def on_command_error(ctx, error):
+    await bot.formatter.format_help_for(ctx, ctx.command if not None else bot)
     if isinstance(error, commands.NoPrivateMessage):
         await ctx.message.channel.send(content='This command cannot be used in private messages.')
 
@@ -52,7 +53,6 @@ async def on_command_error(ctx, error):
 
     elif isinstance(error, commands.MissingRequiredArgument):
         await ctx.message.channel.send(content="You are missing required arguments.\n")
-        #{}.format(bot.help_formatter.format_help_for(ctx, ctx.command if not None else bot)))
 
     elif isinstance(error, commands.CommandNotFound):
         await ctx.message.channel.send(content="Command not found")

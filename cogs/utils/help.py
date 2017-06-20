@@ -18,6 +18,9 @@ import inspect
 import itertools
 
 
+empty = u'\u200b'
+
+
 _mentions_transforms = {
     '@everyone': '@\u200beveryone',
     '@here': '@\u200bhere'
@@ -27,14 +30,41 @@ _mentions_transforms = {
 _mention_pattern = re.compile('|'.join(_mentions_transforms.keys()))
 
 
-class HelpFormatter(formatter.HelpFormatter):
+class Help(formatter.HelpFormatter):
 
     def __init__(self, bot, *args, **kwargs):
         self.bot = bot
+        self.bot.remove_command('help')
         self.bot.formatter = self
+        self.bot.help_formatter = self
         super().__init__(*args, **kwargs)
+        # self.bot.formatter = HelpFormatter(bot)
 
-    def _add_subcommands_to_page(self, cmds):
+    @property
+    def author(self):
+        # Get author dict with username if PM and display name in guild
+        if isinstance(self.context.channel, discord.DMChannel):
+            name = self.bot.user.name
+        else:
+            name = self.context.guild.me.display_name if not '' else self.bot.user.name
+        author = {
+                'name': '{0} Help Manual'.format(name),
+                'icon_url': self.bot.user.avatar_url_as(format='png')
+            }
+        return author
+
+    @property
+    def destination(self):
+        return self.context.message.author if self.bot.pm_help else self.context.message.channel
+
+    @property
+    def color(self):
+        if isinstance(self.context.channel, discord.DMChannel):
+            return 0
+        else:
+            return self.context.me.color
+
+    def _add_subcommands(self, cmds):
         entries = ''
         for name, command in cmds:
             if name in command.aliases:
@@ -49,8 +79,7 @@ class HelpFormatter(formatter.HelpFormatter):
         To paginate a string into a list of strings under
         'lim' characters to meet discord.Embed field value
         hard limits. Currently not used until testing has
-        been done on whether it is needed. Tries to
-        respect line returns.
+        been done on whether it is needed.
 
         :param value: string to paginate
         :return list: list of strings under 'lim' chars
@@ -64,17 +93,19 @@ class HelpFormatter(formatter.HelpFormatter):
                 string = '{0}{1}\n'.format(string, i)
             else:
                 ret.append(string)
-                string = '{0}\n'.format(i)  # TODO: HANDLE STRINGS LONGER THAN 1024
+                string = '{0}'.format(i)
         else:
             ret.append(string)
         return ret
 
-    async def format(self):
+    async def format(self, ctx, command):
         """Formats command for output.
 
         Returns a dict used to build embed"""
 
         # All default values for embed dict
+        self.command = command
+        self.context = ctx
         emb = {
             'embed': {
                 'title': '',
@@ -86,7 +117,7 @@ class HelpFormatter(formatter.HelpFormatter):
             'fields': []
         }
 
-        description = self.command.description if not self.is_cog() else inspect.getdoc(self.command)
+        description = command.description if not self.is_cog() else inspect.getdoc(command)
         if not description == '':
             description = '*{0}*'.format(description)
 
@@ -94,17 +125,17 @@ class HelpFormatter(formatter.HelpFormatter):
             # <description> portion
             emb['embed']['description'] = description
 
-        if isinstance(self.command, discord.ext.commands.core.Command):
+        if isinstance(command, discord.ext.commands.core.Command):
             # <signature portion>
-            emb['embed']['title'] = 'Syntax: {0}'.format(self.get_command_signature())
+            emb['embed']['title'] = '`Syntax: {0}`'.format(self.get_command_signature())
 
             # <long doc> section
-            if self.command.help:
-                name = '__{0}__'.format(self.command.help.split('\n\n')[0])
+            if command.help:
+                name = '__{0}__'.format(command.help.split('\n\n')[0])
                 name_length = len(name) - 4
-                value = self.command.help[name_length:].replace('[p]', self.clean_prefix)
+                value = command.help[name_length:].replace('[p]', self.clean_prefix)
                 if value == '':
-                    value = '{0}{1}'.format(self.clean_prefix, self.command.name)
+                    value = empty
                 field = {
                     'name': name,
                     'value': value,
@@ -115,9 +146,6 @@ class HelpFormatter(formatter.HelpFormatter):
             # end it here if it's just a regular command
             if not self.has_subcommands():
                 return emb
-
-        # Review if needed. Inspect errors if not used because it doesn't match inher
-        max_width = self.max_name_size
 
         def category(tup):
             # Turn get cog (Category) name from cog/list tuples
@@ -138,7 +166,7 @@ class HelpFormatter(formatter.HelpFormatter):
                 commands = sorted(commands)
                 if len(commands) > 0:
                     field['name'] = category
-                    field['value'] = self._add_subcommands_to_page(commands)  # May need paginated
+                    field['value'] = self._add_subcommands(commands)  # May need paginated
                     emb['fields'].append(field)
 
         else:
@@ -147,7 +175,7 @@ class HelpFormatter(formatter.HelpFormatter):
             if filtered:
                 field = {
                     'name': 'Commands:',
-                    'value': self._add_subcommands_to_page(filtered),  # May need paginated
+                    'value': self._add_subcommands(filtered),  # May need paginated
                     'inline': False
                 }
 
@@ -155,15 +183,7 @@ class HelpFormatter(formatter.HelpFormatter):
 
         return emb
 
-
-class Help:
-
-    def __init__(self, bot):
-        self.bot = bot
-        self.bot.remove_command('help')
-        self.bot.formatter = HelpFormatter(bot)
-
-    async def format_help_for(self, context, command_or_bot):
+    async def format_help_for(self, ctx, command_or_bot):
         """Formats the help page and handles the actual heavy lifting of how  ### WTF HAPPENED?
         the help command looks like. To change the behaviour, override the
         :meth:`~.HelpFormatter.format` method.
@@ -180,9 +200,16 @@ class Help:
         list
             A paginated output of the help command.
         """
-        self.ctx = context
+        self.context = ctx
         self.command = command_or_bot
-        return await self.bot.formatter.format(self.ctx, self.command)
+        emb = await self.format(ctx, command_or_bot)
+
+        embed = discord.Embed(color=self.color, **emb['embed'])
+        embed.set_author(**self.author)
+        for field in emb['fields']:
+            embed.add_field(**field)
+        embed.set_footer(**emb['footer'])
+        await self.destination.send(embed=embed)
 
     def simple_embed(self, title=None, description=None, color=None, author=None):
         # Shortcut
@@ -199,53 +226,41 @@ class Help:
                                   color=color, author=self.author)
         return embed
 
-    @commands.command(name='help')
+    @commands.command(name='help', hidden=True)
     async def help(self, ctx, *cmds: str):
         """Shows help documentation.
 
         [p]**help**: Shows the help manual.
-
         [p]**help** command: Show help for a command
-
         [p]**help** Category: Show commands and description for a category"""
-        bot = self.bot
-        if isinstance(ctx.channel, discord.DMChannel):
-            color = 0
-            name = bot.user.name
-        else:
-            color = ctx.me.color
-            name = ctx.guild.me.display_name if not '' else bot.user.name
-        self.author = {
-                'name': '{0} Help Manual'.format(name),
-                'icon_url': self.bot.user.avatar_url_as(format='jpeg')
-            }
-        destination = ctx.message.author if bot.pm_help else ctx.message.channel
+        # bot = self.bot
 
         def repl(obj):
             return _mentions_transforms.get(obj.group(0), '')
 
         # help by itself just lists our own commands.
         if len(cmds) == 0:
-            emb_dict = await bot.formatter.format_help_for(ctx, bot)
+            await self.bot.formatter.format_help_for(ctx, self.bot)
+            return
 
         elif len(cmds) == 1:
             # try to see if it is a cog name
             name = _mention_pattern.sub(repl, cmds[0])
             command = None
-            if name in bot.cogs:
-                command = bot.cogs[name]
+            if name in self.bot.cogs:
+                command = self.bot.cogs[name]
             else:
-                command = bot.all_commands.get(name)
+                command = self.bot.all_commands.get(name)
                 if command is None:
-                    await destination.send(embed=self.cmd_not_found(name, color))
+                    await self.destination.send(embed=self.cmd_not_found(name, self.color))
                     return
 
-            emb_dict = await bot.formatter.format_help_for(ctx, command)
+            await self.bot.formatter.format_help_for(ctx, command)
         else:
             name = _mention_pattern.sub(repl, cmds[0])
-            command = bot.all_commands.get(name)
+            command = self.bot.all_commands.get(name)
             if command is None:
-                await destination.send(embed=self.cmd_not_found(name, color))
+                await self.destination.send(embed=self.cmd_not_found(name, self.color))
                 return
 
             for key in cmds[1:]:
@@ -253,22 +268,15 @@ class Help:
                     key = _mention_pattern.sub(repl, key)
                     command = command.all_commands.get(key)
                     if command is None:
-                        await destination.send(embed=self.cmd_not_found(key, color))
+                        await self.destination.send(embed=self.cmd_not_found(key, self.color))
                         return
                 except AttributeError:
-                    await destination.send(embed=self.simple_embed(title=
-                                           'Command "{0.name}" has no subcommands.'.format(command), color=color,
+                    await self.destination.send(embed=self.simple_embed(title=
+                                           'Command "{0.name}" has no subcommands.'.format(command), color=self.color,
                                                                    author=self.author))
                     return
 
-            emb_dict = await bot.formatter.format_help_for(ctx, command)
-
-        embed = discord.Embed(color=color, **emb_dict['embed'])
-        embed.set_author(**self.author)
-        for field in emb_dict['fields']:
-            embed.add_field(**field)
-        embed.set_footer(**emb_dict['footer'])
-        await destination.send(embed=embed)
+            await self.bot.formatter.format_help_for(ctx, command)
 
 
 def setup(bot):
