@@ -126,7 +126,7 @@ class Help(formatter.HelpFormatter):
         }
 
         description = command.description if not self.is_cog() else inspect.getdoc(command)
-        if not description == '':
+        if not description == '' and description is not None:
             description = '*{0}*'.format(description)
 
         if description:
