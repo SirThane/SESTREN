@@ -109,7 +109,6 @@ class General:
     @commands.command(name='learnpy')
     async def learnpy(self, ctx):
         """Links some tutorials for Python"""
-        await ctx.message.delete()
         msg = """
 Well, I started here and everyone said I shouldn't bother with it because it has an old Python version, but for someone who's not just new to Python, but new to programming in general, use https://codecademy.com/.
 It's very interactive, and even though you can't really do anything with what you learn, it will familiarize you with the fundamentals.
