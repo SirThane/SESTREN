@@ -8,6 +8,7 @@ class Test:
 
     def __init__(self, bot):
         self.bot = bot
+        self.db = bot.db
 
     @commands.group(name='test')
     async def test(self, ctx, *, arg):
@@ -104,6 +105,10 @@ Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil 
             em.add_field(name='Field {}'.format(c), value=i)
             c += 1
         await ctx.send(embed=em)
+
+    @commands.command(name='redtest')
+    async def redtest(self, ctx, *, message: str):
+        self.db.hset('redtest', ctx.message.id, message)
 
 
 def setup(bot):

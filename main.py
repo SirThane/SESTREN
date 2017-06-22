@@ -10,6 +10,7 @@ import discord
 import asyncio
 import traceback
 import logging
+import redis
 
 loop = asyncio.get_event_loop()
 
@@ -37,10 +38,18 @@ try:
     with open('auth.json', 'r+') as auth_file:
         auth = json.load(auth_file)
         token = auth["prod"]
-except IOError:
-    sys.exit("auth.json not found in running directory.")
+except FileNotFoundError:
+    exit("auth.json not found in running directory.")
 
 bot = commands.Bot(command_prefix=prefix, description=description, pm_help=False, self_bot=False)
+
+try:
+    with open('redis.json', 'r+') as redis_conf:
+        conf = json.load(redis_conf)["db"]
+        bot.db = redis.StrictRedis(**conf)
+except FileNotFoundError:
+    print('ERROR: redis.json not found in running directory')
+    exit()
 
 @bot.event
 async def on_command_error(ctx, error):
