@@ -51,6 +51,7 @@ except FileNotFoundError:
     print('ERROR: redis.json not found in running directory')
     exit()
 
+
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.NoPrivateMessage):
@@ -73,7 +74,17 @@ async def on_command_error(ctx, error):
         log.error('{0.__class__.__name__}: {0}'.format(error.original))
 
     else:
-        traceback.print_tb(error.original.__traceback__, file=sys.stderr)
+        traceback.print_tb(error.__traceback__, file=sys.stderr)
+
+
+def owner(member: discord.Member):
+    return member
+
+
+@bot.event
+async def on_guild_channel_update(before, after):
+    print('on_guild_channel_update triggered')
+    print(dir(after))
 
 
 @bot.event
@@ -85,14 +96,14 @@ async def on_ready():
     # log.info("Initialized.")
 
     print('------')
+    print(bot.owner_id)
+    bot.owner = owner(bot.owner_id)
 
 
 @bot.event
 async def on_message(message):
     await bot.process_commands(message)
 
-
-# bot.config = Config("config.json")
 
 # Starting up
 
