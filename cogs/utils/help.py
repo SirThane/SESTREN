@@ -241,7 +241,7 @@ class Help(formatter.HelpFormatter):
         [p]**help**: Shows the help manual.
         [p]**help** command: Show help for a command
         [p]**help** Category: Show commands and description for a category"""
-        # bot = self.bot
+        self.context = ctx
 
         def repl(obj):
             return _mentions_transforms.get(obj.group(0), '')
