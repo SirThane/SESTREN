@@ -148,36 +148,41 @@ class VCAccess:
     #     pass
 
     @vca.command(name='addchannel', aliases=['add'])
-    async def addchannel(self, ctx, channel: discord.VoiceChannel, role: discord.Role):
+    async def addchannel(self, ctx, channel: str, role: str):
         """Adds a Voice Channel to VCA
 
         [p]vca chan add (voice channel id) (role id)"""
-        if channel is not None and role is not None:
-            if str(channel.id) in self.channels(ctx.guild.id):
-                r = discord.utils.get(ctx.guild.roles, id=int(self.db.hget(f'vca:guilds:{ctx.guild.id}')))
+        color = ctx.guild.me.color
+        c = discord.utils.get(ctx.guild.channels, id=int(channel))
+        r = discord.utils.get(ctx.guild.roles, id=int(channel))
+        if c is not None and r is not None:
+            if channel in self.channels(ctx.guild.id):
                 em = discord.Embed(title='Error Adding Channel/Role Pair:',
-                                   description=f'{channel.name} already associated with {r.name}\n'
-                                               f'Please dissociate {channel.name} by using'
+                                   description=f'{c.name} already associated with {r.name}\n'
+                                               f'Please dissociate {c.name} by using'
                                                f'`{self.bot.formatter.clean_prefix}vca removechannel` first.',
-                                   color=ctx.guild.me.color)
+                                   color=color)
                 await ctx.send(embed=em)
             else:
                 if str(ctx.guild.id) not in self.guilds:
-                    await self.db.sadd('vca:guilds', ctx.guild.id)
+                    self.db.sadd('vca:guilds', ctx.guild.id)
                 try:
-                    raise Exception
-                    await self.db.hset(f'vca:guilds:{ctx.guild.id}', channel.id, role.id)
+                    self.db.hset(f'vca:guilds:{ctx.guild.id}', channel, role)
                     em = discord.Embed(title='Success',
-                                       description=f'VCA now active for {channel.name}', color=ctx.guild.me.color)
+                                       description=f'VCA now active for {c.name}', color=color)
                     await ctx.send(embed=em)
                 except Exception as e:
                     em = discord.Embed(title='Error',
                                        description='An error prevented the operation from completing.',
-                                       color=ctx.guild.me.color)
-                    em.add_field(name='Error Details:', value=f'**{type(e).name}**: {e}')
-                    em.set_footer(text='Please report this error to the developer,'
-                                       '{0.name}#{0.discriminator'.format(self.bot.owner))
+                                       color=color)
+                    em.add_field(name='Error Details:', value=f'**{type(e).__name__}**: {e}')
+                    em.set_footer(text='Please report this error to the developer, {0}'.format(self.bot.owner))
                     await ctx.send(embed=em)
+        else:
+            em = discord.Embed(title='Error',
+                               description='Channel or Role not found in current guild.',
+                               color=color)
+            await ctx.send(embed=em)
 
     @vca.command(name='removechannel', aliases=['rem'])
     async def _removechannel(self, ctx, channel: str):

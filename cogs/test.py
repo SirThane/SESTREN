@@ -110,6 +110,5 @@ Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil 
     async def redtest(self, ctx, *, message: str):
         self.db.hset('redtest', ctx.message.id, message)
 
-
 def setup(bot):
     bot.add_cog(Test(bot))

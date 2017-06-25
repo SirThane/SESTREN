@@ -88,6 +88,7 @@ async def on_ready():
     print('------')
     app_info = await bot.application_info()
     bot.owner = discord.utils.get(bot.get_all_members(), id=app_info.owner.id)
+    await bot.change_presence(game=discord.Game(name=f'{bot.command_prefix[0]}help'))
 
 
 @bot.event
