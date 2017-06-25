@@ -13,6 +13,12 @@ Use [p] in command docstr for bot prefix.
 
 See [p]help here for example.
 
+await bot.formatter.format_help_for(ctx, command)
+to send help page for command. Optionally pass a
+string as third arg to add a more descriptive
+message to help page.
+e.g. format_help_for(ctx, ctx.command, "Missing required arguments")
+
 discord.py 1.0.0a
 
 Copyrights to logic of code belong to Rapptz (Danny)"""
