@@ -135,7 +135,8 @@ class Help(formatter.HelpFormatter):
 
         if isinstance(command, discord.ext.commands.core.Command):
             # <signature portion>
-            emb['embed']['title'] = '`Syntax: {0}`'.format(self.get_command_signature())
+            emb['embed']['title'] = emb['embed']['description']
+            emb['embed']['description'] = '`Syntax: {0}`'.format(self.get_command_signature())
 
             # <long doc> section
             if command.help:
@@ -158,7 +159,7 @@ class Help(formatter.HelpFormatter):
         def category(tup):
             # Turn get cog (Category) name from cog/list tuples
             cog = tup[1].cog_name
-            return '**__{}:__**'.format(cog) if cog is not None else '\u200bNo Category:'
+            return f'**__{cog}:__**' if cog is not None else '**__\u200bNo Category:__**'
 
         # Get subcommands for bot or category
         filtered = await self.filter_command_list()
@@ -191,7 +192,7 @@ class Help(formatter.HelpFormatter):
 
         return emb
 
-    async def format_help_for(self, ctx, command_or_bot):
+    async def format_help_for(self, ctx, command_or_bot, reason: str=None):
         """Formats the help page and handles the actual heavy lifting of how  ### WTF HAPPENED?
         the help command looks like. To change the behaviour, override the
         :meth:`~.HelpFormatter.format` method.
@@ -211,6 +212,9 @@ class Help(formatter.HelpFormatter):
         self.context = ctx
         self.command = command_or_bot
         emb = await self.format(ctx, command_or_bot)
+
+        if reason:
+            emb['embed']['title'] = f"{reason}"
 
         embed = discord.Embed(color=self.color, **emb['embed'])
         embed.set_author(**self.author)

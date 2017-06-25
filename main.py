@@ -28,7 +28,7 @@ prefix = ["$"]
 initial_extensions = [
     "admin",
     "general",
-    "vcaccess",
+    "vcaccess-t",
     "utils.help"
 ]
 
@@ -55,16 +55,16 @@ except FileNotFoundError:
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.NoPrivateMessage):
-        await ctx.message.channel.send(content='This command cannot be used in private messages.')
+        await ctx.send(content='This command cannot be used in private messages.')
 
     elif isinstance(error, commands.DisabledCommand):
-        await ctx.message.channel.send(content='This command is disabled and cannot be used.')
+        await ctx.send(content='This command is disabled and cannot be used.')
 
     elif isinstance(error, commands.MissingRequiredArgument):
-        await ctx.message.channel.send(content="You are missing required arguments.\n")
+        await bot.formatter.format_help_for(ctx, ctx.command, "You are missing required arguments.")
 
     elif isinstance(error, commands.CommandNotFound):
-        await ctx.message.channel.send(content="Command not found")
+        await ctx.send(content="Command not found")
 
     elif isinstance(error, commands.CommandInvokeError):
         print('In {0.command.qualified_name}:'.format(ctx), file=sys.stderr)
@@ -77,16 +77,6 @@ async def on_command_error(ctx, error):
         traceback.print_tb(error.__traceback__, file=sys.stderr)
 
 
-def owner(member: discord.Member):
-    return member
-
-
-@bot.event
-async def on_guild_channel_update(before, after):
-    print('on_guild_channel_update triggered')
-    print(dir(after))
-
-
 @bot.event
 async def on_ready():
     print('Logged in as')
@@ -96,8 +86,8 @@ async def on_ready():
     # log.info("Initialized.")
 
     print('------')
-    print(bot.owner_id)
-    bot.owner = owner(bot.owner_id)
+    app_info = await bot.application_info()
+    bot.owner = discord.utils.get(bot.get_all_members(), id=app_info.owner.id)
 
 
 @bot.event
