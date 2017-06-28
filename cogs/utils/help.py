@@ -52,7 +52,6 @@ class Help(formatter.HelpFormatter):
         self.bot.formatter = self
         self.bot.help_formatter = self
         super().__init__(*args, **kwargs)
-        # self.bot.formatter = HelpFormatter(bot)
 
     @property
     def author(self):
@@ -85,7 +84,10 @@ class Help(formatter.HelpFormatter):
                 # skip aliases
                 continue
 
-            entries += '**{0}{1}:**   {2}\n'.format(self.clean_prefix, name, command.short_doc)
+            if self.is_cog() or self.is_bot():
+                name = f'{self.clean_prefix}{name}'
+
+            entries += f'**{name}:**   {command.short_doc}\n'  # .format(self.clean_prefix, name, command.short_doc)
         return entries
 
     def paginate(self, value):
