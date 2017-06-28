@@ -106,7 +106,7 @@ Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil 
             c += 1
         await ctx.send(embed=em)
 
-    @commands.command(name='redtest')
+    @commands.command(name='redtest', disabled=True)
     async def redtest(self, ctx, *, message: str):
         self.db.hset('redtest', ctx.message.id, message)
 

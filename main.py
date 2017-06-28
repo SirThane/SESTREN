@@ -10,9 +10,22 @@ import discord
 import asyncio
 import traceback
 import logging
-import redis
+from cogs.utils import utils
+
 
 loop = asyncio.get_event_loop()
+
+name = 'SESTREN'  # BOT NAME HERE
+
+try:
+    with open('redis.json', 'r+') as redis_conf:
+        conf = json.load(redis_conf)["db"]
+except FileNotFoundError:
+    print('ERROR: redis.json not found in running directory')
+    exit()
+except:
+    print('ERROR: could not load configuration')
+    exit()
 
 log = logging.getLogger()
 log.setLevel(logging.DEBUG)
@@ -23,33 +36,16 @@ log.addHandler(handler)
 
 log.info("Instance started.")
 
-prefix = ["$"]
-
-initial_extensions = [
-    "admin",
-    "general",
-    "vcaccess-t",
-    "utils.help"
-]
-
-description = "Thane's bot for testing and building cogs."
-
-try:
-    with open('auth.json', 'r+') as auth_file:
-        auth = json.load(auth_file)
-        token = auth["prod"]
-except FileNotFoundError:
-    exit("auth.json not found in running directory.")
-
-bot = commands.Bot(command_prefix=prefix, description=description, pm_help=False, self_bot=False)
-
-try:
-    with open('redis.json', 'r+') as redis_conf:
-        conf = json.load(redis_conf)["db"]
-        bot.db = redis.StrictRedis(**conf)
-except FileNotFoundError:
-    print('ERROR: redis.json not found in running directory')
-    exit()
+db = utils.StrictRedis(**conf)
+config = f'{name}:config'
+# instance = {
+#     'command_prefix': db.lrange(f'{config}:prefix', 0, -1),
+#     'description': db.hget(f'{config}:instance', 'description'),
+#     'pm_help': True if db.hget(f'{config}:instance', 'pm_help') == "True" else False,
+#     'self_bot': True if db.hget(f'{config}:instance', 'self_bot') == "True" else False
+# }
+bot = commands.Bot(command_prefix=db.lrange(f'{config}:prefix', 0, -1), **db.hgetall(f'{config}:instance'))
+bot.db = db
 
 
 @bot.event
@@ -64,7 +60,7 @@ async def on_command_error(ctx, error):
         await bot.formatter.format_help_for(ctx, ctx.command, "You are missing required arguments.")
 
     elif isinstance(error, commands.CommandNotFound):
-        await ctx.send(content="Command not found")
+        await bot.formatter.format_help_for(ctx, ctx.command)
 
     elif isinstance(error, commands.CommandInvokeError):
         print('In {0.command.qualified_name}:'.format(ctx), file=sys.stderr)
@@ -79,16 +75,20 @@ async def on_command_error(ctx, error):
 
 @bot.event
 async def on_ready():
-    print('Logged in as')
-    print(bot.user.name)
-    print(bot.user.id)
-    print(discord.utils.oauth_url(bot.user.id))
-    # log.info("Initialized.")
-
-    print('------')
     app_info = await bot.application_info()
     bot.owner = discord.utils.get(bot.get_all_members(), id=app_info.owner.id)
     await bot.change_presence(game=discord.Game(name=f'{bot.command_prefix[0]}help'))
+
+    print(f'#-------------------------------#\n'
+          f'| Successfully logged in.\n'
+          f'#-------------------------------#\n'
+          f'| Username:  {bot.user.name}\n'
+          f'| User ID:   {bot.user.id}\n'
+          f'| Owner:     {bot.owner}\n'
+          f'| Guilds:    {len(bot.guilds)}\n'
+          f'| Users:     {len(list(bot.get_all_members()))}\n'
+          f'| OAuth URL: {discord.utils.oauth_url(bot.user.id)}\n'
+          f'# ------------------------------#')
 
 
 @bot.event
@@ -96,18 +96,22 @@ async def on_message(message):
     await bot.process_commands(message)
 
 
-# Starting up
-
 if __name__ == "__main__":
-    print()
-    for extension in initial_extensions:
-        try:
-            print('Loading initial cog {}'.format(extension))
-            bot.load_extension('cogs.{}'.format(extension))
-            # log.info("Loaded {}".format(extension))
-        except Exception as e:
-            # log.warning('Failed to load extension {}\n{}: {}'.format(extension, type(e).__name__, e))
-            print('Failed to load extension {}\n{}: {}'.format(extension, type(e).__name__, e))
+    print(f'\n'
+          f'#-------------------------------#')
 
-    print()
-    bot.run(token, bot=True)
+    for cog in db.lrange(f'{config}:initial_cogs', 0, -1):
+        try:
+            print(f'| Loading initial cog {cog}')
+            bot.load_extension(f'cogs.{cog}')
+            log.info(f'Loaded {cog}')
+        except Exception as e:
+            log.warning('Failed to load extension {}\n{}: {}'.format(cog, type(e).__name__, e))
+            print('| Failed to load extension {}\n|   {}: {}'.format(cog, type(e).__name__, e))
+
+    print(f'#-------------------------------#\n')
+    run = {
+        'token': db.hget(f'{config}:run', 'token'),
+        'bot': db.hget(f'{config}:run', 'bot')
+    }
+    bot.run(run['token'], bot=run['bot'])
