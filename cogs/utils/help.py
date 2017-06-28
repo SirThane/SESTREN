@@ -191,7 +191,7 @@ class Help(formatter.HelpFormatter):
             filtered = sorted(filtered)
             if filtered:
                 field = {
-                    'name': '**__Commands:__**',
+                    'name': '**__Commands:__**' if not self.is_bot() and self.is_cog() else '**__Subcommands:__**',
                     'value': self._add_subcommands(filtered),  # May need paginated
                     'inline': False
                 }
