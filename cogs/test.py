@@ -108,6 +108,7 @@ Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil 
 
     @commands.command(name='redtest', disabled=True, hidden=True)
     async def redtest(self, ctx, *, message: str):
+        '''Test docstr'''
         self.db.hset('redtest', ctx.message.id, message)
 
 def setup(bot):

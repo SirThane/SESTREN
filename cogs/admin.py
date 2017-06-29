@@ -139,6 +139,7 @@ class Admin:
 
         await ctx.channel.send(embed=embed)
 
+    @checks.sudo()
     @commands.command(hidden=True, name='exec')
     async def _exec(self, ctx, *, code: str):
         """Run exec() on an input."""
@@ -177,6 +178,13 @@ class Admin:
 
         await ctx.message.delete()
         await ctx.send(embed=embed)
+
+    @checks.sudo()
+    @commands.command(name='self_mention_detected', hidden=True)
+    async def self_mention_detected(self, ctx):
+        em = ctx.message.embeds.pop(0)
+        await ctx.message.delete()
+        await ctx.send(ctx.author.mention, embed=em)
 
     @commands.command(name='game', hidden=True)
     async def game(self, ctx, *, game: str=None):
