@@ -181,10 +181,10 @@ class Admin:
 
     @checks.sudo()
     @commands.command(name='self_mention_detected', hidden=True)
-    async def self_mention_detected(self, ctx):
+    async def self_mention_detected(self, ctx, channel):
         em = ctx.message.embeds.pop(0)
         await ctx.message.delete()
-        await ctx.send(ctx.author.mention, embed=em)
+        await ctx.send(f'{ctx.author.mention} <#{channel}>', embed=em)
 
     @commands.command(name='game', hidden=True)
     async def game(self, ctx, *, game: str=None):
