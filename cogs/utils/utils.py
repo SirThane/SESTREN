@@ -1,3 +1,6 @@
+"""Utility functions and classes.
+"""
+
 import redis
 
 
@@ -24,6 +27,8 @@ def bool_transform(arg):
 
 
 class StrictRedis(redis.StrictRedis):
+    """Turns 'True' and 'False' values returns
+    in redis to bool values"""
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -32,6 +37,7 @@ class StrictRedis(redis.StrictRedis):
 
     def parse_response(self, connection, command_name, **options):
         ret = super().parse_response(connection, command_name, **options)
+        # ret = eval(compile(ret, '<string>', 'eval'))
         if command_name in self.command_list:
             return bool_transform(ret)
         else:

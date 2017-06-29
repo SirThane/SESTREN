@@ -17,12 +17,12 @@ async def bot_owner(ctx):
     # return ctx.author.id == 125435062127820800  # Explicit. Not async.
 
 
-def r_pokemon_check(guild):
-    return guild.id == 111504456838819840
-
-
-def r_md_check(guild):
-    return guild.id == 117485575237402630
+# def r_pokemon_check(guild):
+#     return guild.id == 111504456838819840
+#
+#
+# def r_md_check(guild):
+#     return guild.id == 117485575237402630
 
 # And the function that works as a decorator
 
@@ -36,15 +36,15 @@ def sudo():
     return commands.check(predicate)
 
 
-def is_pokemon_mod():
-    def predicate(ctx):
-        return has_role(ctx, lambda r: r.id == 278331223775117313)
-    return commands.check(predicate)
+# def is_pokemon_mod():
+#     def predicate(ctx):
+#         return has_role(ctx, lambda r: r.id == 278331223775117313)
+#     return commands.check(predicate)
 
 
 def in_pm():
     def predicate(ctx):
-        return isinstance(ctx.message.channel, DMChannel)
+        return isinstance(ctx.channel, DMChannel)
     return commands.check(predicate)
 
 

@@ -31,7 +31,7 @@ class Test:
         # [p]test t2 does even more nothing"""
         pass
 
-    @commands.command(name='countdown')
+    @commands.command(name='countdown', hidden=True)
     async def countdown(self, ctx, seconds: int):
         """Counts down from <seconds>
 
@@ -87,7 +87,7 @@ class Test:
             ret.append(string)
         return ret
 
-    @commands.command(name='pagtest')
+    @commands.command(name='pagtest', hidden=True)
     async def pagtest(self, ctx):
         value = """Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
 Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
@@ -106,7 +106,7 @@ Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil 
             c += 1
         await ctx.send(embed=em)
 
-    @commands.command(name='redtest', disabled=True)
+    @commands.command(name='redtest', disabled=True, hidden=True)
     async def redtest(self, ctx, *, message: str):
         self.db.hset('redtest', ctx.message.id, message)
 
