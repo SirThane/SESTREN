@@ -173,7 +173,7 @@ class Admin:
         await ctx.send(embed=embed)
 
     @checks.sudo()
-    @commands.command(name='self_mention_detected', hidden=True)
+    @commands.command(name='notif', hidden=True)
     async def notif(self, ctx, channel):
         """Echos custom notification to owner
 
