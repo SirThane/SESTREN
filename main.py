@@ -29,7 +29,7 @@ except:
 
 log = logging.getLogger()
 log.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename='SESTREN.log', encoding='utf-8', mode='a')
+handler = logging.FileHandler(filename=f'{name}.log', encoding='utf-8', mode='a')
 formatter = logging.Formatter("{asctime} - {levelname} - {message}", style="{")
 handler.setFormatter(formatter)
 log.addHandler(handler)
@@ -38,12 +38,6 @@ log.info("Instance started.")
 
 db = utils.StrictRedis(**conf)
 config = f'{name}:config'
-# instance = {
-#     'command_prefix': db.lrange(f'{config}:prefix', 0, -1),
-#     'description': db.hget(f'{config}:instance', 'description'),
-#     'pm_help': True if db.hget(f'{config}:instance', 'pm_help') == "True" else False,
-#     'self_bot': True if db.hget(f'{config}:instance', 'self_bot') == "True" else False
-# }
 bot = commands.Bot(command_prefix=db.lrange(f'{config}:prefix', 0, -1), **db.hgetall(f'{config}:instance'))
 bot.db = db
 

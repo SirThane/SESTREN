@@ -51,6 +51,7 @@ class Admin:
         environment.update(globals())
         return environment
 
+    @checks.sudo()
     @commands.command(hidden=True)
     async def load(self, ctx, *, cog: str, verbose: bool=False):
         """load a module"""
@@ -65,6 +66,7 @@ class Admin:
         else:
             await ctx.send(content="Module loaded successfully.")
 
+    @checks.sudo()
     @commands.command(hidden=True)
     async def unload(self, ctx, *, cog: str):
         """Unloads a module."""
@@ -76,28 +78,28 @@ class Admin:
         else:
             await ctx.send(content='Module unloaded successfully.')
 
+    @checks.sudo()
     @commands.command(hidden=True)
     async def reload(self, ctx, *, cog: str):
         """Reloads a module."""
         cog = 'cogs.{}'.format(cog)
         try:
             self.bot.unload_extension(cog)
-            sleep(1)
+            await sleep(1)
             self.bot.load_extension(cog)
         except Exception as e:
-            await ctx.send(content='Failed.')
-            sleep(1)
             await ctx.send(content='{}: {}'.format(type(e).__name__, e))
         else:
             await ctx.send(content='Module reloaded.')
 
+    @checks.sudo()
     @commands.command(hidden=True, name='await')
     async def _await(self, ctx, *, code):
 
         env = self.env(ctx)
 
         try:
-            await eval(code)
+            await eval(code, env)
         except Exception as e:
             await ctx.send(str(e))
 
@@ -116,28 +118,24 @@ class Admin:
             if inspect.isawaitable(result):
                 result = await result
             result = str(result)[:1014]
-            emb = {
-                'color': 0x00FF00,
-                'field': {
-                    'name': 'Yielded result:',
-                    'value': python.format(result),
-                    'inline': False
-                }
+            color = 0x00FF00
+            field = {
+                'inline': False,
+                'name': 'Yielded result:',
+                'value': python.format(result)
             }
         except Exception as e:
-            emb = {
-                'color': 0xFF0000,
-                'field': {
-                    'name': 'Yielded exception "{0.__name__}":'.format(type(e)),
-                    'value': '{0} '.format(e),
-                    'inline': False
-                }
+            color = 0xFF0000
+            field = {
+                'inline': False,
+                'name': 'Yielded exception "{0.__name__}":'.format(type(e)),
+                'value': '{0} '.format(e)
             }
 
-        embed = discord.Embed(title="Eval on:", description=python.format(code), color=emb['color'])
-        embed.add_field(**emb['field'])
+        embed = discord.Embed(title="Eval on:", description=python.format(code), color=color)
+        embed.add_field(**field)
 
-        await ctx.channel.send(embed=embed)
+        await ctx.send(embed=embed)
 
     @checks.sudo()
     @commands.command(hidden=True, name='exec')
@@ -154,34 +152,33 @@ class Admin:
                 exec(code, env)
                 result = str(s.getvalue())
             result = str(result)[:1014]
-        except Exception as e:
-            emb = {
-                'color': 0xff0000,
-                'field': {
-                    'name': 'Yielded exception "{0.__name__}":'.format(type(e)),
-                    'value': str(e),
-                    'inline': False
-                }
+            color = 0x00FF00
+            field = {
+                'inline': False,
+                'name': 'Yielded result(s):',
+                'value': python.format(result)
             }
-        else:
-            emb = {
-                'color': 0x00ff00,
-                'field': {
-                    'name': 'Yielded result(s):',
-                    'value': python.format(result),
-                    'inline': False
-                }
+        except Exception as e:
+            color = 0xFF0000
+            field = {
+                'inline': False,
+                'name': 'Yielded exception "{0.__name__}":'.format(type(e)),
+                'value': str(e)
             }
 
-        embed = discord.Embed(title="Exec on:", description=python.format(code), color=emb['color'])
-        embed.add_field(**emb['field'])
+        embed = discord.Embed(title="Exec on:", description=python.format(code), color=color)
+        embed.add_field(**field)
 
         await ctx.message.delete()
         await ctx.send(embed=embed)
 
     @checks.sudo()
     @commands.command(name='self_mention_detected', hidden=True)
-    async def self_mention_detected(self, ctx, channel):
+    async def notif(self, ctx, channel):
+        """Echos custom notification to owner
+
+        This command will typically only be
+        invoked by a selfbot."""
         em = ctx.message.embeds.pop(0)
         await ctx.message.delete()
         await ctx.send(f'{ctx.author.mention} <#{channel}>', embed=em)
