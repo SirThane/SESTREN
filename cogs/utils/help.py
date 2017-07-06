@@ -26,6 +26,7 @@ Copyrights to logic of code belong to Rapptz (Danny)"""
 import discord
 from discord.ext import commands
 from discord.ext.commands import formatter
+from cogs.utils import utils
 import re
 import inspect
 import itertools
@@ -89,30 +90,6 @@ class Help(formatter.HelpFormatter):
 
             entries += f'**{name}:**   {command.short_doc}\n'  # .format(self.clean_prefix, name, command.short_doc)
         return entries
-
-    def paginate(self, value):
-        """
-        To paginate a string into a list of strings under
-        'lim' characters to meet discord.Embed field value
-        hard limits. Currently not used until testing has
-        been done on whether it is needed.
-
-        :param value: string to paginate
-        :return list: list of strings under 'lim' chars
-        """
-        lim = 1024
-        spl = value.split('\n')
-        ret = []
-        string = ''
-        for i in spl:
-            if len(string) + len(i) < (lim - 1):
-                string = '{0}{1}\n'.format(string, i)
-            else:
-                ret.append(string)
-                string = '{0}'.format(i)
-        else:
-            ret.append(string)
-        return ret
 
     async def format(self, ctx, command):
         """Formats command for output.

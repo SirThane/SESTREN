@@ -2,6 +2,8 @@
 
 import discord
 from discord.ext import commands
+from cogs.utils import utils
+from cogs.utils.checks import Checks
 
 
 class Test:
@@ -26,11 +28,12 @@ class Test:
 
     @test.command(name='t2')
     async def t2(self, ctx, *, arg):
-        # """T2 test subcommand
+        # """T2 test subcommand  # Shhhh. We're testing the help formatter.
         #
         # [p]test t2 does even more nothing"""
         pass
 
+    @Checks.sudo()
     @commands.command(name='countdown', hidden=True)
     async def countdown(self, ctx, seconds: int):
         """Counts down from <seconds>
@@ -64,29 +67,6 @@ class Test:
         #     h = _hex(*c)
         #     print(hex(h))
 
-    def paginate(self, value):
-        """
-        To paginate a string into a list of strings under
-        'lim' characters to meet discord.Embed field value
-        hard limits. Currently not used until testing has
-        been done on whether it is needed.
-        :param value: string to paginate
-        :return list: list of strings under 'lim' chars
-        """
-        lim = 1024
-        spl = value.split('\n')
-        ret = []
-        string = ''
-        for i in spl:
-            if len(string) + len(i) < (lim - 1):
-                string = '{0}{1}\n'.format(string, i)
-            else:
-                ret.append(string)
-                string = '{0}'.format(i)
-        else:
-            ret.append(string)
-        return ret
-
     @commands.command(name='pagtest', hidden=True)
     async def pagtest(self, ctx):
         value = """Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
@@ -106,6 +86,7 @@ Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil 
             c += 1
         await ctx.send(embed=em)
 
+    @Checks.sudo()
     @commands.command(name='redtest', disabled=True, hidden=True)
     async def redtest(self, ctx, *, message: str):
         '''Test docstr'''

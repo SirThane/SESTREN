@@ -8,8 +8,7 @@ On leave, removes access role.
 
 import discord
 from discord.ext import commands
-# import json
-# from cogs.utils import config
+from cogs.utils.checks import Checks
 
 
 class VCAccess:
@@ -66,47 +65,13 @@ class VCAccess:
                         except ValueError:
                             pass
 
+    @Checks.sudo()
     @commands.group(name='vca')
     async def vca(self, ctx):
         """Voice Channel Access Control
 
         [p]vca (subcommand)"""
         pass
-
-    # @vca.command(name='addguild', aliases=['add'])
-    # async def addguild(self, ctx, gid: int):  # g = discord.Guild.id
-    #     """Activates VCA on a guild
-    #
-    #     [p]vca addguild (guild id)"""
-    #     gstr = str(gid)
-    #     gobj = discord.utils.get(self.bot.guilds, id=gid)
-    #     if gobj is not None:
-    #         if gstr in self.guilds:
-    #             await ctx.message.channel.send(content='VCA already active on {0.name}.'.format(gobj))
-    #         else:
-    #             await self._data.put(gid, {})
-    #             await ctx.message.channel.send(content='VCA now active on {0.name}'.format(gobj))
-    #     else:
-    #         await ctx.message.channel.send(content='Server id {0} not found. Make sure SESTREN is a member.'.format(gid))
-
-    # @vca.command(name='removeguild', aliases=['rem'])
-    # async def removeguild(self, ctx, gid: int):
-    #     """Deactivates VCA on a guild.
-    #
-    #     This will remove all channels from VCA belonging
-    #     to the guild.
-    #
-    #     [p]vca removeguild (guild id)"""
-    #     gstr = str(gid)
-    #     gobj = discord.utils.get(self.bot.guilds, id=gid)
-    #     if gobj is not None:
-    #         if gstr in self.guilds:
-    #             await self._data.remove(gstr)
-    #             await ctx.message.channel.send(content='{0.name} removed from VCA.'.format(gobj))
-    #         else:
-    #             await ctx.message.channel.send(content='VCA is not active on {0.name}'.format(gobj))
-    #     else:
-    #         await ctx.message.channel.send(content='Server id {0} not found. Make sure SESTREN is a member.'.format(gid))
 
     @vca.command(name='list')
     async def _list(self, ctx):
@@ -125,28 +90,7 @@ class VCAccess:
             embed.add_field(name=f'VCA active in {ctx.guild.name} on the following channels:', value=field)
             await ctx.send(embed=embed)
 
-        # out = 'VCA active in {0} on the following channels:'.format('-'*61)
-        # for g in self.guilds:
-        #     guild = discord.utils.get(self.bot.guilds, id=int(g))
-        #     out += '{0}\n'.format(guild.name)
-        #     channels = self._data.get(g)
-        #     if not len(channels) == 0:
-        #         for c in channels:
-        #             channel = discord.utils.get(guild.channels, id=int(c))
-        #             role = discord.utils.get(guild.roles, id=int(channels[c]))
-        #             out += '--- {0} : {1}\n'.format(channel.name, role.name)
-        # else:
-        #     out += '```'
-        # await ctx.message.channel.send(content=out)
-
-    # @vca.group(name='chan')
-    # async def chan(self, ctx):
-    #     """Voice Channel Access `role` command group
-    #
-    #     [p]vca chan add (voice channel id) (role id)
-    #     [p]vca chan rem (voice channel id)"""
-    #     pass
-
+    @Checks.sudo()
     @vca.command(name='addchannel', aliases=['add'])
     async def addchannel(self, ctx, channel: str, role: str):
         """Adds a Voice Channel to VCA
@@ -184,6 +128,7 @@ class VCAccess:
                                color=color)
             await ctx.send(embed=em)
 
+    @Checks.sudo()
     @vca.command(name='removechannel', aliases=['rem'])
     async def _removechannel(self, ctx, channel: str):
         """Removes a Voice Channel from VCA

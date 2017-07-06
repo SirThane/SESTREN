@@ -7,7 +7,6 @@ Copyright (c) 2015 Rapptz
 """
 from discord.ext import commands
 import discord
-import random
 import traceback
 import inspect
 import logging
@@ -15,7 +14,7 @@ from asyncio import sleep
 import sys
 from io import StringIO
 import contextlib
-from cogs.utils import checks
+from cogs.utils.checks import Checks
 
 log = logging.getLogger()
 
@@ -51,7 +50,7 @@ class Admin:
         environment.update(globals())
         return environment
 
-    @checks.sudo()
+    @Checks.sudo()
     @commands.command(hidden=True)
     async def load(self, ctx, *, cog: str, verbose: bool=False):
         """load a module"""
@@ -66,7 +65,7 @@ class Admin:
         else:
             await ctx.send(content="Module loaded successfully.")
 
-    @checks.sudo()
+    @Checks.sudo()
     @commands.command(hidden=True)
     async def unload(self, ctx, *, cog: str):
         """Unloads a module."""
@@ -78,7 +77,7 @@ class Admin:
         else:
             await ctx.send(content='Module unloaded successfully.')
 
-    @checks.sudo()
+    @Checks.sudo()
     @commands.command(hidden=True)
     async def reload(self, ctx, *, cog: str):
         """Reloads a module."""
@@ -92,7 +91,7 @@ class Admin:
         else:
             await ctx.send(content='Module reloaded.')
 
-    @checks.sudo()
+    @Checks.sudo()
     @commands.command(hidden=True, name='await')
     async def _await(self, ctx, *, code):
 
@@ -103,8 +102,7 @@ class Admin:
         except Exception as e:
             await ctx.send(str(e))
 
-    # Thanks to rapptz
-    @checks.sudo()
+    @Checks.sudo()
     @commands.command(hidden=True, name='eval')
     async def _eval(self, ctx, *, code: str):
         """Run eval() on an input."""
@@ -137,7 +135,7 @@ class Admin:
 
         await ctx.send(embed=embed)
 
-    @checks.sudo()
+    @Checks.sudo()
     @commands.command(hidden=True, name='exec')
     async def _exec(self, ctx, *, code: str):
         """Run exec() on an input."""
@@ -172,7 +170,7 @@ class Admin:
         await ctx.message.delete()
         await ctx.send(embed=embed)
 
-    @checks.sudo()
+    @Checks.sudo()
     @commands.command(name='notif', hidden=True)
     async def notif(self, ctx, channel):
         """Echos custom notification to owner
@@ -183,6 +181,7 @@ class Admin:
         await ctx.message.delete()
         await ctx.send(f'{ctx.author.mention} <#{channel}>', embed=em)
 
+    @Checks.sudo()
     @commands.command(name='game', hidden=True)
     async def game(self, ctx, *, game: str=None):
         """
@@ -197,30 +196,9 @@ class Admin:
         sleep(5)
         await ctx.message.delete
 
-    # @commands.command(hidden=True, name='set_config')
-    # async def _set_config(self, ctx, key: str, value: str):
-    #     """Directly alter a config file."""
-    #     try:
-    #         try:
-    #             value = int(value)
-    #         except ValueError:
-    #             pass
-    #         await self.config.put(key, value)
-    #         await ctx.send(content="Success.")
-    #     except KeyError:
-    #         raise commands.CommandInvokeError
-    #
-    # @commands.command(hidden=True, name='append_to_config')
-    # async def _append_to_config(self, ctx, key: str, value: str):
-    #     """Append a value to a list in a config file"""
-    #     try:
-    #         temp_list = await self.config.get(key)
-    #         temp_list.append(value)
-    #         await self.config.put(key, temp_list)
-    #         await ctx.send(content="Success.")
-    #     except KeyError:
-    #         await ctx.send(content="Key {} not found.".format(key))
+    """ It might be cool to make some DB altering commands. """
 
+    @Checks.sudo()
     @commands.command(hidden=True, aliases=["rip", "F", "f"])
     async def kill(self, ctx):  # Overwrites builtin kill()
         log.warning("Restarted by command.")
