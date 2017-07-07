@@ -2,6 +2,7 @@
 
 import discord
 from discord.ext import commands
+from cogs.utils import checks
 
 
 class General:
@@ -85,7 +86,8 @@ class General:
         """Your basic `ping`"""
         await ctx.send('pong')
 
-    @commands.command(name='discrim')
+    @checks.sudo()
+    @commands.command(name='discrim', hidden=True)
     async def discrim(self, ctx, *, member: discord.Member=None):
         """Finds a username that you can use to change discriminator
 

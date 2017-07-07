@@ -14,9 +14,11 @@ from asyncio import sleep
 import sys
 from io import StringIO
 import contextlib
-from cogs.utils.checks import Checks
+from cogs.utils import checks
+from main import app_name
 
 log = logging.getLogger()
+config = f'{app_name}:admin'
 
 
 @contextlib.contextmanager
@@ -50,7 +52,7 @@ class Admin:
         environment.update(globals())
         return environment
 
-    @Checks.sudo()
+    @checks.sudo()
     @commands.command(hidden=True)
     async def load(self, ctx, *, cog: str, verbose: bool=False):
         """load a module"""
@@ -65,7 +67,7 @@ class Admin:
         else:
             await ctx.send(content="Module loaded successfully.")
 
-    @Checks.sudo()
+    @checks.sudo()
     @commands.command(hidden=True)
     async def unload(self, ctx, *, cog: str):
         """Unloads a module."""
@@ -77,7 +79,7 @@ class Admin:
         else:
             await ctx.send(content='Module unloaded successfully.')
 
-    @Checks.sudo()
+    @checks.sudo()
     @commands.command(hidden=True)
     async def reload(self, ctx, *, cog: str):
         """Reloads a module."""
@@ -91,7 +93,7 @@ class Admin:
         else:
             await ctx.send(content='Module reloaded.')
 
-    @Checks.sudo()
+    @checks.sudo()
     @commands.command(hidden=True, name='await')
     async def _await(self, ctx, *, code):
 
@@ -102,7 +104,7 @@ class Admin:
         except Exception as e:
             await ctx.send(str(e))
 
-    @Checks.sudo()
+    @checks.sudo()
     @commands.command(hidden=True, name='eval')
     async def _eval(self, ctx, *, code: str):
         """Run eval() on an input."""
@@ -135,7 +137,7 @@ class Admin:
 
         await ctx.send(embed=embed)
 
-    @Checks.sudo()
+    @checks.sudo()
     @commands.command(hidden=True, name='exec')
     async def _exec(self, ctx, *, code: str):
         """Run exec() on an input."""
@@ -170,7 +172,7 @@ class Admin:
         await ctx.message.delete()
         await ctx.send(embed=embed)
 
-    @Checks.sudo()
+    @checks.sudo()
     @commands.command(name='notif', hidden=True)
     async def notif(self, ctx, channel):
         """Echos custom notification to owner
@@ -181,7 +183,7 @@ class Admin:
         await ctx.message.delete()
         await ctx.send(f'{ctx.author.mention} <#{channel}>', embed=em)
 
-    @Checks.sudo()
+    @checks.sudo()
     @commands.command(name='game', hidden=True)
     async def game(self, ctx, *, game: str=None):
         """
@@ -198,9 +200,9 @@ class Admin:
 
     """ It might be cool to make some DB altering commands. """
 
-    @Checks.sudo()
-    @commands.command(hidden=True, aliases=["rip", "F", "f"])
-    async def kill(self, ctx):  # Overwrites builtin kill()
+    @checks.sudo()
+    @commands.command(hidden=True, name='restart')
+    async def _restart(self, ctx):  # Overwrites builtin kill()
         log.warning("Restarted by command.")
         await ctx.send(content="Restarting.")
         await self.bot.logout()

@@ -8,7 +8,8 @@ On leave, removes access role.
 
 import discord
 from discord.ext import commands
-from cogs.utils.checks import Checks
+from cogs.utils import checks
+from main import app_name
 
 
 class VCAccess:
@@ -65,7 +66,7 @@ class VCAccess:
                         except ValueError:
                             pass
 
-    @Checks.sudo()
+    @checks.sudo()
     @commands.group(name='vca')
     async def vca(self, ctx):
         """Voice Channel Access Control
@@ -90,7 +91,7 @@ class VCAccess:
             embed.add_field(name=f'VCA active in {ctx.guild.name} on the following channels:', value=field)
             await ctx.send(embed=embed)
 
-    @Checks.sudo()
+    @checks.sudo()
     @vca.command(name='addchannel', aliases=['add'])
     async def addchannel(self, ctx, channel: str, role: str):
         """Adds a Voice Channel to VCA
@@ -128,7 +129,7 @@ class VCAccess:
                                color=color)
             await ctx.send(embed=em)
 
-    @Checks.sudo()
+    @checks.sudo()
     @vca.command(name='removechannel', aliases=['rem'])
     async def _removechannel(self, ctx, channel: str):
         """Removes a Voice Channel from VCA

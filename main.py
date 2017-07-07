@@ -15,7 +15,7 @@ from cogs.utils import utils
 
 loop = asyncio.get_event_loop()
 
-name = 'SESTREN'  # BOT NAME HERE
+app_name = 'SESTREN'  # BOT NAME HERE
 
 try:
     with open('redis.json', 'r+') as redis_conf:
@@ -29,7 +29,7 @@ except:
 
 log = logging.getLogger()
 log.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename=f'{name}.log', encoding='utf-8', mode='a')
+handler = logging.FileHandler(filename=f'{app_name}.log', encoding='utf-8', mode='a')
 formatter = logging.Formatter("{asctime} - {levelname} - {message}", style="{")
 handler.setFormatter(formatter)
 log.addHandler(handler)
@@ -37,7 +37,7 @@ log.addHandler(handler)
 log.info("Instance started.")
 
 db = utils.StrictRedis(**conf)
-config = f'{name}:config'
+config = f'{app_name}:config'
 bot = commands.Bot(command_prefix=db.lrange(f'{config}:prefix', 0, -1), **db.hgetall(f'{config}:instance'))
 bot.db = db
 
