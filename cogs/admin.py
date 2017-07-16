@@ -181,7 +181,7 @@ class Admin:
         invoked by a selfbot."""
         em = ctx.message.embeds.pop(0)
         await ctx.message.delete()
-        await ctx.send(f'{ctx.author.mention} <#{channel}>', embed=em)
+        await ctx.author.send(f'{ctx.author.mention} <#{channel}>', embed=em)
 
     @checks.sudo()
     @commands.command(name='game', hidden=True)
