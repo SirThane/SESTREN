@@ -50,7 +50,7 @@ class Challenges:
                  'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
         LOWER = list(map(lambda x: x.lower(), UPPER))
         ALPHA = UPPER + LOWER
-        NUMERAL = [n for n in range(1, 11)]
+        NUMERAL = [n for n in range(10)]
         AN_UPPER = UPPER + NUMERAL
         AN_LOWER = LOWER + NUMERAL
         ANY = ALPHA + NUMERAL
