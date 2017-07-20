@@ -54,7 +54,8 @@ async def on_command_error(ctx, error):
         await bot.formatter.format_help_for(ctx, ctx.command, "You are missing required arguments.")
 
     elif isinstance(error, commands.CommandNotFound):
-        await bot.formatter.format_help_for(ctx, ctx.command)
+        await bot.formatter.format_help_for(ctx, [c for c in bot.commands if 'help' == c.name][0],
+                                            "Command not found.")
 
     elif isinstance(error, commands.CommandInvokeError):
         print('In {0.command.qualified_name}:'.format(ctx), file=sys.stderr)
