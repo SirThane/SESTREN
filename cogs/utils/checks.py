@@ -1,7 +1,7 @@
 from discord.ext import commands
 import discord
 from main import db, app_name
-
+from main import bot
 
 """
     Utility functions and definitions.
@@ -11,30 +11,30 @@ from main import db, app_name
 config = f'{app_name}:config:permissions'
 
 
-def supercede(supercedent):
+def supercede(precedent):
     """Decorate a predicate.
     Pass a predicate as param.
     Returns True if either test True."""
-    def precede(precedent):
-        def check(ctx):
-            if supercedent(ctx):
+    def decorator(predicate):
+        def wrapper(ctx):
+            if precedent(ctx):
                 return True
-            return precedent(ctx)
-        return check
-    return precede
+            return predicate(ctx)
+        return wrapper
+    return decorator
 
 
 def require(requisite):
     """Decorate a predicate.
     Pass a predicate as param.
     Returns False if either test False."""
-    def obligate(predicate):
-        def check(ctx):
+    def decorator(predicate):
+        def wrapper(ctx):
             if not requisite(ctx):
                 return False
             return predicate(ctx)
-        return check
-    return obligate
+        return wrapper
+    return decorator
 
 
 def in_pm(ctx):
@@ -50,8 +50,10 @@ def no_pm(ctx):
 """
 
 
-async def bot_owner(ctx):
-    return await ctx.bot.is_owner(ctx.author)
+def bot_owner(ctx):
+    def check():
+        return ctx.author.id == 125435062127820800
+    return check()
 
 
 @require(no_pm)  # can't have roles in PMs
@@ -121,10 +123,11 @@ def sudo():
     return commands.check(predicate)
 
 
-def pm():
-    def predicate(ctx):
-        return isinstance(ctx.channel, discord.DMChannel)
-    return commands.check(predicate)
+def pm(allow=False):
+    def decorator(check):
+        def predicate(ctx):
+            return in_pm(ctx)
+        return commands.check(predicate)
 
 
 # ### Luc's checks ###
