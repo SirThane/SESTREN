@@ -83,7 +83,7 @@ async def on_ready():
           f'| Owner:     {bot.owner}\n'
           f'| Guilds:    {len(bot.guilds)}\n'
           f'| Users:     {len(list(bot.get_all_members()))}\n'
-          f'| OAuth URL: {discord.utils.oauth_url(bot.user.id)}\n'
+          f'| OAuth URL: {discord.utils.oauth_url(app_info.id)}\n'
           f'# ------------------------------#')
 
 
