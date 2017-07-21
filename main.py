@@ -71,8 +71,8 @@ async def on_command_error(ctx, error):
 
 @bot.event
 async def on_ready():
-    app_info = await bot.application_info()
-    bot.owner = discord.utils.get(bot.get_all_members(), id=app_info.owner.id)
+    bot.app_info = await bot.application_info()
+    bot.owner = discord.utils.get(bot.get_all_members(), id=bot.app_info.owner.id)
     await bot.change_presence(game=discord.Game(name=f'{bot.command_prefix[0]}help'))
 
     print(f'#-------------------------------#\n'
@@ -83,7 +83,7 @@ async def on_ready():
           f'| Owner:     {bot.owner}\n'
           f'| Guilds:    {len(bot.guilds)}\n'
           f'| Users:     {len(list(bot.get_all_members()))}\n'
-          f'| OAuth URL: {discord.utils.oauth_url(app_info.id)}\n'
+          f'| OAuth URL: {discord.utils.oauth_url(bot.app_info.id)}\n'
           f'# ------------------------------#')
 
 

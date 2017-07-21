@@ -184,6 +184,14 @@ class Admin:
         await ctx.author.send(f'<#{channel}>', embed=em)
 
     @checks.sudo()
+    @commands.command(name='invite', hidden=True)
+    async def invite(self, ctx):
+        em = discord.Embed(title=f'OAuth URL for {self.bot.name}',
+                           description='(Click Here)[{discord.utils.oauth_url(self.bot.app_info.id)}] '
+                                       'to invite {self.bot.name} to your guild.', color=ctx.guild.me.color)
+        await ctx.send(embed=em)
+
+    @checks.sudo()
     @commands.command(name='game', hidden=True)
     async def game(self, ctx, *, game: str=None):
         """
