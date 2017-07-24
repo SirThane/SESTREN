@@ -43,11 +43,16 @@ _mentions_transforms = {
 _mention_pattern = re.compile('|'.join(_mentions_transforms.keys()))
 
 
+orig_help = None
+
+
 class Help(formatter.HelpFormatter):
     """Formats help for commands."""
 
     def __init__(self, bot, *args, **kwargs):
         self.bot = bot
+        global orig_help
+        orig_help = [c for c in bot.commands if c.name == 'help'][0]
         self.bot.remove_command('help')
         self.bot.formatter = self
         self.bot.help_formatter = self
@@ -282,12 +287,13 @@ class Help(formatter.HelpFormatter):
 
 
 def teardown(bot):
-    from discord.ext.commands.core import command
-    from discord.ext.commands.bot import _default_help_command
+    # from discord.ext.commands.core import command
+    # from discord.ext.commands.bot import _default_help_command
     bot.formatter = formatter.HelpFormatter
-    _help = command(pass_context=True, name='help')(_default_help_command)
-    bot.add_command(_help)
-    print('teardown complete')
+    # _help = command(pass_context=True, name='help')(_default_help_command)
+    # bot.add_command(_help)
+    # print('teardown complete')
+    bot.commands.add(orig_help)
 
 
 def setup(bot):
