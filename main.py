@@ -28,7 +28,7 @@ except:
     exit()
 
 log = logging.getLogger()
-log.setLevel(logging.DEBUG)
+log.setLevel(logging.WARNING)
 handler = logging.FileHandler(filename=f'{app_name}.log', encoding='utf-8', mode='a')
 formatter = logging.Formatter("{asctime} - {levelname} - {message}", style="{")
 handler.setFormatter(formatter)
@@ -38,7 +38,7 @@ log.info("Instance started.")
 
 db = utils.StrictRedis(**conf)
 config = f'{app_name}:config'
-bot = commands.Bot(command_prefix=db.lrange(f'{config}:prefix', 0, -1), **db.hgetall(f'{config}:instance'))
+bot = commands.Bot(command_prefix=db.hget(f'{config}:prefix', 'default'), **db.hgetall(f'{config}:instance'))
 bot.db = db
 
 
@@ -87,8 +87,21 @@ async def on_ready():
           f'# ------------------------------#')
 
 
+def get_default_prefix():
+    return db.hget(f'{config}:prefix', 'default')
+
+
 @bot.event
 async def on_message(message):
+    default_prefix = get_default_prefix()
+    if not isinstance(message.channel, discord.TextChannel):
+        bot.command_prefix = [default_prefix]
+    else:
+        guild_prefix = db.hget(f'{config}:prefix', message.guild.id)
+        if guild_prefix:
+            bot.command_prefix = [guild_prefix, default_prefix]
+        else:
+            bot.command_prefix = [default_prefix]
     await bot.process_commands(message)
 
 
