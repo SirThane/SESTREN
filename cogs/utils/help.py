@@ -26,7 +26,6 @@ Copyrights to logic of code belong to Rapptz (Danny)"""
 import discord
 from discord.ext import commands
 from discord.ext.commands import formatter
-from cogs.utils import utils
 import re
 import inspect
 import itertools
@@ -78,6 +77,12 @@ class Help(formatter.HelpFormatter):
         else:
             return self.context.me.color
 
+    async def send(self, dest, embed):
+        if discord.version_info.major == 1:
+            await dest.send(embed=embed)
+        else:
+            await self.bot.send_message(dest, embed=embed)
+
     def _add_subcommands(self, cmds):
         entries = ''
         for name, command in cmds:
@@ -86,9 +91,9 @@ class Help(formatter.HelpFormatter):
                 continue
 
             if self.is_cog() or self.is_bot():
-                name = f'{self.clean_prefix}{name}'
+                name = '{0}{1}'.format(self.clean_prefix, name)
 
-            entries += f'**{name}:**   {command.short_doc}\n'  # .format(self.clean_prefix, name, command.short_doc)
+            entries += '**{0}:**   {1}\n'.format(name, command.short_doc)
         return entries
 
     async def format(self, ctx, command):
@@ -144,7 +149,7 @@ class Help(formatter.HelpFormatter):
         def category(tup):
             # Turn get cog (Category) name from cog/list tuples
             cog = tup[1].cog_name
-            return f'**__{cog}:__**' if cog is not None else '**__\u200bNo Category:__**'
+            return '**__{0}:__**'.format(cog) if cog is not None else '**__\u200bNo Category:__**'
 
         # Get subcommands for bot or category
         filtered = await self.filter_command_list()
@@ -184,7 +189,7 @@ class Help(formatter.HelpFormatter):
 
         Parameters
         -----------
-        context: :class:`.Context`
+        ctx: :class:`.Context`
             The context of the invoked help command.
         command_or_bot: :class:`.Command` or :class:`.Bot`
             The bot or command that we are getting the help of.
@@ -199,14 +204,14 @@ class Help(formatter.HelpFormatter):
         emb = await self.format(ctx, command_or_bot)
 
         if reason:
-            emb['embed']['title'] = f"{reason}"
+            emb['embed']['title'] = "{0}".format(reason)
 
         embed = discord.Embed(color=self.color, **emb['embed'])
         embed.set_author(**self.author)
         for field in emb['fields']:
             embed.add_field(**field)
         embed.set_footer(**emb['footer'])
-        await self.destination.send(embed=embed)
+        await self.send(self.destination, embed=embed)
 
     def simple_embed(self, title=None, description=None, color=None, author=None):
         # Shortcut
@@ -249,7 +254,7 @@ class Help(formatter.HelpFormatter):
             else:
                 command = self.bot.all_commands.get(name)
                 if command is None:
-                    await self.destination.send(embed=self.cmd_not_found(name, self.color))
+                    await self.send(self.destination, embed=self.cmd_not_found(name, self.color))
                     return
 
             await self.bot.formatter.format_help_for(ctx, command)
@@ -257,7 +262,7 @@ class Help(formatter.HelpFormatter):
             name = _mention_pattern.sub(repl, cmds[0])
             command = self.bot.all_commands.get(name)
             if command is None:
-                await self.destination.send(embed=self.cmd_not_found(name, self.color))
+                await self.send(self.destination, embed=self.cmd_not_found(name, self.color))
                 return
 
             for key in cmds[1:]:
@@ -265,15 +270,24 @@ class Help(formatter.HelpFormatter):
                     key = _mention_pattern.sub(repl, key)
                     command = command.all_commands.get(key)
                     if command is None:
-                        await self.destination.send(embed=self.cmd_not_found(key, self.color))
+                        await self.send(self.destination, embed=self.cmd_not_found(key, self.color))
                         return
                 except AttributeError:
-                    await self.destination.send(embed=self.simple_embed(title=
+                    await self.send(self.destination, embed=self.simple_embed(title=
                                            'Command "{0.name}" has no subcommands.'.format(command), color=self.color,
                                                                    author=self.author))
                     return
 
             await self.bot.formatter.format_help_for(ctx, command)
+
+
+def teardown(bot):
+    from discord.ext.commands.core import command
+    from discord.ext.commands.bot import _default_help_command
+    bot.formatter = formatter.HelpFormatter
+    _help = command(pass_context=True, name='help')(_default_help_command)
+    bot.add_command(_help)
+    print('teardown complete')
 
 
 def setup(bot):
