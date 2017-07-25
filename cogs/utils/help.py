@@ -20,15 +20,18 @@ message to help page.
 e.g. format_help_for(ctx, ctx.command, "Missing required arguments")
 
 discord.py 1.0.0a
+Experimental: compatibility with 0.16.8
 
 Copyrights to logic of code belong to Rapptz (Danny)"""
 
 import discord
 from discord.ext import commands
 from discord.ext.commands import formatter
+import sys
 import re
 import inspect
 import itertools
+import traceback
 
 
 empty = u'\u200b'
@@ -38,6 +41,10 @@ _mentions_transforms = {
     '@everyone': '@\u200beveryone',
     '@here': '@\u200bhere'
 }
+
+
+def rewrite():
+    return discord.version_info.major == 1
 
 
 _mention_pattern = re.compile('|'.join(_mentions_transforms.keys()))
@@ -58,35 +65,66 @@ class Help(formatter.HelpFormatter):
         self.bot.help_formatter = self
         super().__init__(*args, **kwargs)
 
+    # Shortcuts that allow cog to run on 0.16.8 and 1.0.0a
+
+    def pm_check(self, ctx):
+        if rewrite():
+            return isinstance(ctx.channel, discord.DMChannel)
+        else:
+            return ctx.message.channel.is_private
+
+    @property
+    def me(self):
+        if rewrite():
+            return self.context.me
+        else:
+            return self.context.message.server.me
+
+    @property
+    def bot_all_commands(self):
+        if rewrite():
+            return self.bot.all_commands
+        else:
+            return self.bot.commands
+
+    @property
+    def avatar(self):
+        if rewrite():
+            return self.bot.user.avatar_url_as(format='png')
+        else:
+            return self.bot.user.avatar_url  # TODO: I really don't like not having a PNG
+
+    @property
+    def color(self):
+        if self.pm_check(self.context):
+            return 0
+        else:
+            return self.me.color
+
+    async def send(self, dest, content=None, embed=None):
+        if rewrite():
+            await dest.send(content=content, embed=embed)
+        else:
+            await self.bot.send_message(dest, content=content, embed=embed)
+
+    # All the other shit
+
     @property
     def author(self):
         # Get author dict with username if PM and display name in guild
-        if isinstance(self.context.channel, discord.DMChannel):
+        if self.pm_check(self.context):
             name = self.bot.user.name
         else:
-            name = self.context.guild.me.display_name if not '' else self.bot.user.name
+            name = self.me.display_name if not '' else self.bot.user.name
         author = {
                 'name': '{0} Help Manual'.format(name),
-                'icon_url': self.bot.user.avatar_url_as(format='png')
+                'icon_url': self.avatar
             }
         return author
 
     @property
     def destination(self):
         return self.context.message.author if self.bot.pm_help else self.context.message.channel
-
-    @property
-    def color(self):
-        if isinstance(self.context.channel, discord.DMChannel):
-            return 0
-        else:
-            return self.context.me.color
-
-    async def send(self, dest, embed):
-        if discord.version_info.major == 1:
-            await dest.send(embed=embed)
-        else:
-            await self.bot.send_message(dest, embed=embed)
 
     def _add_subcommands(self, cmds):
         entries = ''
@@ -98,8 +136,13 @@ class Help(formatter.HelpFormatter):
             if self.is_cog() or self.is_bot():
                 name = '{0}{1}'.format(self.clean_prefix, name)
 
-            entries += '**{0}:**   {1}\n'.format(name, command.short_doc)
+            entries += '**{0}**   {1}\n'.format(name, command.short_doc)
         return entries
+
+    def get_ending_note(self):
+        # command_name = self.context.invoked_with
+        return "Type {0}help <command> for more info on a command.\n" \
+               "You can also type {0} <category> for more info on a category.".format(self.clean_prefix)
 
     async def format(self, ctx, command):
         """Formats command for output.
@@ -157,7 +200,10 @@ class Help(formatter.HelpFormatter):
             return '**__{0}:__**'.format(cog) if cog is not None else '**__\u200bNo Category:__**'
 
         # Get subcommands for bot or category
-        filtered = await self.filter_command_list()
+        if rewrite():
+            filtered = await self.filter_command_list()
+        else:
+            filtered = self.filter_command_list()
 
         if self.is_bot():
             # Get list of non-hidden commands for bot.
@@ -233,7 +279,7 @@ class Help(formatter.HelpFormatter):
                                   color=color, author=self.author)
         return embed
 
-    @commands.command(name='help')
+    @commands.command(name='help', pass_context=True)
     async def help(self, ctx, *cmds: str):
         """Shows help documentation.
 
@@ -257,7 +303,7 @@ class Help(formatter.HelpFormatter):
             if name in self.bot.cogs:
                 command = self.bot.cogs[name]
             else:
-                command = self.bot.all_commands.get(name)
+                command = self.bot_all_commands.get(name)
                 if command is None:
                     await self.send(self.destination, embed=self.cmd_not_found(name, self.color))
                     return
@@ -265,7 +311,7 @@ class Help(formatter.HelpFormatter):
             await self.bot.formatter.format_help_for(ctx, command)
         else:
             name = _mention_pattern.sub(repl, cmds[0])
-            command = self.bot.all_commands.get(name)
+            command = self.bot_all_commands.get(name)
             if command is None:
                 await self.send(self.destination, embed=self.cmd_not_found(name, self.color))
                 return
@@ -278,14 +324,22 @@ class Help(formatter.HelpFormatter):
                         await self.send(self.destination, embed=self.cmd_not_found(key, self.color))
                         return
                 except AttributeError:
-                    await self.send(self.destination, embed=self.simple_embed(title=
-                                           'Command "{0.name}" has no subcommands.'.format(command), color=self.color,
-                                                                   author=self.author))
+                    await self.send(self.destination,
+                                    embed=self.simple_embed(title=
+                                                            'Command "{0.name}" has no subcommands.'.format(command),
+                                                            color=self.color,
+                                                            author=self.author))
                     return
 
             await self.bot.formatter.format_help_for(ctx, command)
 
+    @help.error
+    async def help_error(self, error, ctx):
+        await self.send(self.destination, '{0.__name__}: {1}'.format(type(error), error))
+        traceback.print_tb(error.original.__traceback__, file=sys.stderr)
+
     def __unload(self):
+        print('called __unload')
         self.bot.formatter = formatter.HelpFormatter()
         self.bot.add_command(orig_help)
 
