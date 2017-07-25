@@ -52,7 +52,7 @@ class Help(formatter.HelpFormatter):
     def __init__(self, bot, *args, **kwargs):
         self.bot = bot
         global orig_help
-        orig_help = [c for c in bot.commands if c.name == 'help'][0]
+        orig_help = bot.get_command('help')
         self.bot.remove_command('help')
         self.bot.formatter = self
         self.bot.help_formatter = self
@@ -285,15 +285,9 @@ class Help(formatter.HelpFormatter):
 
             await self.bot.formatter.format_help_for(ctx, command)
 
-
-def teardown(bot):
-    # from discord.ext.commands.core import command
-    # from discord.ext.commands.bot import _default_help_command
-    bot.formatter = formatter.HelpFormatter
-    # _help = command(pass_context=True, name='help')(_default_help_command)
-    # bot.add_command(_help)
-    # print('teardown complete')
-    bot.commands.add(orig_help)
+    def __unload(self):
+        self.bot.formatter = formatter.HelpFormatter()
+        self.bot.add_command(orig_help)
 
 
 def setup(bot):
