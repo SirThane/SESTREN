@@ -22,7 +22,8 @@ e.g. format_help_for(ctx, ctx.command, "Missing required arguments")
 discord.py 1.0.0a
 Experimental: compatibility with 0.16.8
 
-Copyrights to logic of code belong to Rapptz (Danny)"""
+Copyrights to logic of code belong to Rapptz (Danny)
+Everything else credit to SirThane#1780"""
 
 import discord
 from discord.ext import commands
