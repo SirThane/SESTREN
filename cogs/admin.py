@@ -172,7 +172,6 @@ class Admin:
         await ctx.message.delete()
         await ctx.send(embed=embed)
 
-    @checks.sudo()
     @commands.command(name='notif', hidden=True)
     async def notif(self, ctx, channel):
         """Echos custom notification to owner
@@ -186,9 +185,9 @@ class Admin:
     @checks.sudo()
     @commands.command(name='invite', hidden=True)
     async def invite(self, ctx):
-        em = discord.Embed(title=f'OAuth URL for {self.bot.name}',
-                           description='(Click Here)[{discord.utils.oauth_url(self.bot.app_info.id)}] '
-                                       'to invite {self.bot.name} to your guild.', color=ctx.guild.me.color)
+        em = discord.Embed(title=f'OAuth URL for {self.bot.user.name}',
+                           description=f'[Click Here]({discord.utils.oauth_url(self.bot.app_info.id)}) '
+                                       f'to invite {self.bot.user.name} to your guild.', color=ctx.guild.me.color)
         await ctx.send(embed=em)
 
     @checks.sudo()
