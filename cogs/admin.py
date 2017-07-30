@@ -169,7 +169,6 @@ class Admin:
         embed = discord.Embed(title="Exec on:", description=python.format(code), color=color)
         embed.add_field(**field)
 
-        await ctx.message.delete()
         await ctx.send(embed=embed)
 
     @commands.command(name='notif', hidden=True)
