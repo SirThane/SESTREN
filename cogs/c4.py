@@ -9,12 +9,12 @@ from main import app_name
 
 class Session:
     """Active Session of Connect Four"""
-    def __init__(self, p1, p2, chan):
+    def __init__(self, p1, p2):
         self.p1 = p1  # These will be discord.Member objects of players
         self.p2 = p2  # `p1` being ctx.author and `p2 being the ping
-        self.chan = chan
         self.board = [[0 for x in range(7)] for y in range(7)]
         self.turn = 0
+        self.timeout = 0
         self.msg = None
         self.emojis = {
             0: "⚪",  # :white_circle:
@@ -105,6 +105,8 @@ class ConnectFour:
         self.bot = bot
         self.db = bot.db
         self.sessions = {}
+        self.timeout = 120
+        self.timeout_incr = 5
         self.message_icon = ["ℹ", "⚠", "⛔"]  # :information_source:, :warning:, :no_entry:
         self.message_color = [discord.Colour.blue(), discord.Colour.orange(), discord.Colour.red()]
 
@@ -120,6 +122,7 @@ class ConnectFour:
 
     async def send_board(self, ctx, init=False, win=None):
         session = self.session(ctx)
+        session.ctx = ctx
         if session.msg is not None:
             await session.msg.delete()
 
@@ -128,7 +131,10 @@ class ConnectFour:
                 turn = f"Game ended in a Draw."
                 color = discord.Colour.dark_grey()
             elif win == "Forfeit":
-                turn = f"Game Over. {session.current_player} Forfeits."
+                turn = f"Game Over. {ctx.author.name} Forfeits."
+                color = discord.Colour.dark_grey()
+            elif win == "Timeout":
+                turn = f"Time Out. {session.current_player.name} Forfeits."
                 color = discord.Colour.dark_grey()
             else:
                 turn = f"Game Over!\n{win.name} wins! 🎉"
@@ -149,8 +155,9 @@ class ConnectFour:
             em.set_footer(text=f"{session.current_player.name}'s turn: {session.current_player_chip}")
             session.msg = await ctx.send(embed=em)
 
-        if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
-            await ctx.message.delete()
+        if not win == "Timeout":
+            if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
+                await ctx.message.delete()
 
     @commands.group(name="play")
     async def play(self, ctx):
@@ -179,12 +186,15 @@ class ConnectFour:
         if not self.chan_check(ctx):
             return
         if user:
-            session = self.session(ctx)
-            if session:
-                await self.message(ctx, msg="There is already an active game in this channel.", level=2)
+            if user.id == ctx.author.id:
+                await self.message(ctx, msg="You cannot start a game with yourself.", level=1)
             else:
-                self.sessions[ctx.channel.id] = Session(ctx.author, user, ctx.channel)
-                await self.send_board(ctx)
+                session = self.session(ctx)
+                if session:
+                    await self.message(ctx, msg="There is already an active game in this channel.", level=2)
+                else:
+                    self.sessions[ctx.channel.id] = Session(ctx.author, user)
+                    await self.send_board(ctx)
         else:
             await self.bot.formatter.format_help_for(ctx, ctx.command, "You need another player to start.")
 
@@ -221,7 +231,6 @@ class ConnectFour:
             return
         session = self.session(ctx)
         if session and ctx.author in [session.p1, session.p2]:
-            self.sessions.pop(ctx.channel.id)
             await self.send_board(ctx, win="Forfeit")
         else:
             await self.message(ctx, msg="No active game in this channel.", level=1)
@@ -309,6 +318,14 @@ class ConnectFour:
     async def _killall(self, ctx):
         ctx.message.content = f"{self.bot.command_prefix[0]}kill True"
         await self.bot.process_commands(ctx.message)
+
+    async def on_timer_update(self, sec):
+        if sec % self.timeout_incr == 0:
+            sessions = [s for s in self.sessions.values()]
+            for session in sessions:
+                session.timeout += self.timeout_incr
+                if session.timeout == self.timeout:
+                    await self.send_board(session.ctx, win="Timeout")
 
 
 def setup(bot):
