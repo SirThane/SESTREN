@@ -93,7 +93,7 @@ class Session:
         if all(map(lambda n: n == 6, [r[6] for r in self.board])):
             return "Draw"
 
-        return False
+        return None
 
 
 class ConnectFour:
@@ -118,7 +118,7 @@ class ConnectFour:
         em = discord.Embed(description=f"{self.message_icon[level]}  {msg}", color=self.message_color[level])
         await ctx.send(embed=em)
 
-    async def send_board(self, ctx, init=False, win=False):
+    async def send_board(self, ctx, init=False, win=None):
         session = self.session(ctx)
         if session.msg is not None:
             await session.msg.delete()
@@ -126,6 +126,9 @@ class ConnectFour:
         if win:
             if win == "Draw":
                 turn = f"Game ended in a Draw."
+                color = discord.Colour.dark_grey()
+            elif win == "Forfeit":
+                turn = f"Game Over. {session.current_player} Forfeits."
                 color = discord.Colour.dark_grey()
             else:
                 turn = f"Game Over!\n{win.name} wins! 🎉"
@@ -219,7 +222,7 @@ class ConnectFour:
         session = self.session(ctx)
         if session and ctx.author in [session.p1, session.p2]:
             self.sessions.pop(ctx.channel.id)
-            await ctx.send("Game has ended.")
+            await self.send_board(ctx, win="Forfeit")
         else:
             await self.message(ctx, msg="No active game in this channel.", level=1)
 
