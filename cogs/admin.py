@@ -172,14 +172,14 @@ class Admin:
         await ctx.send(embed=embed)
 
     @commands.command(name='notif', hidden=True)
-    async def notif(self, ctx, channel):
+    async def notif(self, ctx, *, message: str):
         """Echos custom notification to owner
 
         This command will typically only be
         invoked by a selfbot."""
         em = ctx.message.embeds.pop(0)
         await ctx.message.delete()
-        await ctx.author.send(f'<#{channel}>', embed=em)
+        await ctx.author.send(message, embed=em)
 
     @checks.sudo()
     @commands.command(name='invite', hidden=True)
