@@ -1,7 +1,6 @@
 from discord.ext import commands
 import discord
 from main import db, app_name
-from main import bot
 
 """
     Utility functions and definitions.

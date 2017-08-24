@@ -46,7 +46,7 @@ class General:
                 },
                 {
                     'name': 'Display Name:',
-                    'value': member.display_name if not None else '(no display name set)',
+                    'value': member.display_name if not member.name else '(no display name set)',
                     'inline': True
                 },
                 {

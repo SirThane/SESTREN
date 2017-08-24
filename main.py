@@ -1,7 +1,6 @@
 """
 Currently a test bot.
 Still a test bot
-Doing me a test.
 """
 
 import json
@@ -110,6 +109,7 @@ async def on_ready():
           f'| OAuth URL: {discord.utils.oauth_url(bot.app_info.id)}\n'
           f'# ------------------------------#')
 
+###
 
 def get_default_prefix():
     return db.hget(f'{config}:prefix', 'default')

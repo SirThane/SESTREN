@@ -13,24 +13,24 @@ class Test:
 
     @commands.group(name='test')
     async def test(self, ctx, *, arg):
-        """Test group
-
-        [p]test does nothing"""
         pass
 
-    @test.command(name='t1')
+    @test.group(name='t1')
     async def t1(self, ctx, *, arg):
-        """T1 test subcommand
+        """Test"""
+        pass
 
-        [p]test t1 also does nothing"""
+    @t1.command(name='t1_1')
+    async def t1_1(self, ctx, *, arg):
+        """T1 subcommand"""
         pass
 
     @test.command(name='t2')
-    async def t2(self, ctx, *, arg):
-        # """T2 test subcommand  # Shhhh. We're testing the help formatter.
-        #
-        # [p]test t2 does even more nothing"""
-        pass
+    async def t2(self, ctx):
+        """Supposed to print shit"""
+        print(dir(ctx))
+        print()
+        print(dir(ctx.command))
 
     @checks.sudo()
     @commands.command(name='countdown', hidden=True)
@@ -86,10 +86,69 @@ Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil 
         await ctx.send(embed=em)
 
     @checks.sudo()
-    @commands.command(name='redtest', disabled=True, hidden=True)
+    @commands.command(name='redtest', enabled=False, hidden=True)
     async def redtest(self, ctx, *, message: str):
         '''Test docstr'''
         self.db.hset('redtest', ctx.message.id, message)
+
+    @checks.sudo()
+    @commands.command()
+    async def embtest(self, ctx):
+        d = {
+              "content": "this `supports` __a__ **subset** *of* ~~markdown~~ 😃 ```js\nfunction foo(bar) {\n  console.log(bar);\n}\n\nfoo(1);```",
+              "embed": {
+                "title": "title ~~(did you know you can have markdown here too?)~~",
+                "description": "this supports [named links](https://discordapp.com) on top of the previously shown subset of markdown. ```\nyes, even code blocks```",
+                "url": "https://discordapp.com",
+                "color": 4830089,
+                "footer": {
+                  "icon_url": "https://cdn.discordapp.com/embed/avatars/0.png",
+                  "text": "footer text"
+                },
+                "thumbnail": {
+                  "url": "https://cdn.discordapp.com/embed/avatars/0.png"
+                },
+                "image": {
+                  "url": "https://cdn.discordapp.com/embed/avatars/0.png"
+                },
+                "author": {
+                  "name": "author name",
+                  "url": "https://discordapp.com",
+                  "icon_url": "https://cdn.discordapp.com/embed/avatars/0.png"
+                },
+                "fields": [
+                  {
+                    "name": "🤔",
+                    "value": "some of these properties have certain limits..."
+                  },
+                  {
+                    "name": "😱",
+                    "value": "try exceeding some of them!"
+                  },
+                  {
+                    "name": "🙄",
+                    "value": "an informative error should show up, and this view will remain as-is until all issues are fixed"
+                  },
+                  {
+                    "name": "<:thonkang:219069250692841473>",
+                    "value": "these last two",
+                    "inline": True
+                  },
+                  {
+                    "name": "<:thonkang:219069250692841473>",
+                    "value": "are inline fields",
+                    "inline": True
+                  }
+                ]
+              }
+            }
+        emb = discord.Embed.from_data(d['embed'])
+        await ctx.send(d['content'], embed=emb)
+
+    @commands.command()
+    async def c4test(self, ctx):
+        await ctx.send(embed=discord.Embed(description=":one::two::three::four::five::six::seven:"))
+
 
 def setup(bot):
     bot.add_cog(Test(bot))
