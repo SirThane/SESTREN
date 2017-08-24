@@ -1,6 +1,7 @@
 """
 Currently a test bot.
 Still a test bot
+Doing me a test.
 """
 
 import json
@@ -42,6 +43,28 @@ bot = commands.Bot(command_prefix=db.hget(f'{config}:prefix', 'default'), **db.h
 bot.db = db
 
 
+@bot.listen()
+async def timer_update(seconds):
+    # Dummy listener
+    return seconds
+
+
+# TODO: INVESTIGATE HOW THESE FUCKERS WORK. LUC, YOU'RE MY IDOL.
+async def init_timed_events(bot):
+    """Create a listener task with a tick-rate of 1s"""
+
+    await bot.wait_until_ready()  # Wait for the bot to launch first
+    bot.secs = 0
+
+    secs = 0  # Keep track of the number of secs so we can access it elsewhere and adjust how often things run
+    while True:
+        bot.dispatch("timer_update", secs)
+        await timer_update(secs)
+        secs += 1
+        bot.secs = secs
+        await asyncio.sleep(1)
+
+
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.NoPrivateMessage):
@@ -74,6 +97,7 @@ async def on_ready():
     bot.app_info = await bot.application_info()
     bot.owner = discord.utils.get(bot.get_all_members(), id=bot.app_info.owner.id)
     await bot.change_presence(game=discord.Game(name=f'{bot.command_prefix[0]}help'))
+    bot.loop.create_task(init_timed_events(bot))
 
     print(f'#-------------------------------#\n'
           f'| Successfully logged in.\n'
