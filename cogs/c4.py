@@ -29,7 +29,7 @@ from main import app_name
 #         return self.member.default_avatar
 
 
-class Session:
+class ConnectFourSession:
     """Active Session of Connect Four"""
     def __init__(self, p1, p2):
         self.p1 = p1  # These will be discord.Member objects of players
@@ -223,7 +223,7 @@ class ConnectFour:
                 if session:
                     await self.message(ctx, msg="There is already an active game in this channel.", level=2)
                 else:
-                    self.sessions[ctx.channel.id] = Session(ctx.author, user)
+                    self.sessions[ctx.channel.id] = ConnectFourSession(ctx.author, user)
                     await self.send_board(ctx)
         else:
             await self.bot.formatter.format_help_for(ctx, ctx.command, "You need another player to start.")
@@ -237,7 +237,10 @@ class ConnectFour:
         can use this command."""
         if not self.chan_check(ctx):
             return
-        member = await self.member_check(ctx, arg)
+        try:
+            member = await self.member_check(ctx, arg)
+        except:
+            member = None
         if member:
             ctx.message.content = f"{self.bot.command_prefix[0]}c4 play {member.mention}"
         else:
@@ -260,7 +263,7 @@ class ConnectFour:
                 if session:
                     await self.message(ctx, msg="There is already an active game in this channel.", level=2)
                 else:
-                    self.sessions[ctx.channel.id] = Session(ctx.author, user)
+                    self.sessions[ctx.channel.id] = ConnectFourSession(ctx.author, user)
                     await self.send_board(ctx)
         else:
             await self.bot.formatter.format_help_for(ctx, ctx.command, "You need another player to start.")
