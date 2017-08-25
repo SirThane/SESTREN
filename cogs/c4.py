@@ -7,29 +7,33 @@ from .utils import checks
 from main import app_name
 
 
-class Player:
-    """Board Game Participant"""
-    def __init__(self, member: discord.Member):
-        self.member = member
-
-    @property
-    def color(self):
-        return self.member.color
-
-    @property
-    def id(self):
-        return self.member.id
-
-    @property
-    def default_avatar(self):
-        return self.member.default_avatar
+# class Player:
+#     """Board Game Participant"""
+#     def __init__(self, member: discord.Member):
+#         self.member = member
+#
+#     @property
+#     def name(self):
+#         return self.member.name
+#
+#     @property
+#     def color(self):
+#         return self.member.color
+#
+#     @property
+#     def id(self):
+#         return self.member.id
+#
+#     @property
+#     def default_avatar(self):
+#         return self.member.default_avatar
 
 
 class Session:
     """Active Session of Connect Four"""
     def __init__(self, p1, p2):
-        self.p1 = Player(p1)  # These will be discord.Member objects of players
-        self.p2 = Player(p2)  # `p1` being ctx.author and `p2 being the ping
+        self.p1 = p1  # These will be discord.Member objects of players
+        self.p2 = p2  # `p1` being ctx.author and `p2 being the ping
         self.board = [[0 for x in range(7)] for y in range(7)]
         self.turn = 0
         self.timeout = 0
@@ -51,7 +55,7 @@ class Session:
     def current_player_chip(self):
         return self.player_chip(self.current_player)
 
-    def player_chip(self, player: Player):
+    def player_chip(self, player: discord.Member):
         return self.emojis.get(player.id, 0)
 
     @property
@@ -141,6 +145,12 @@ class ConnectFour:
     def chan_check(self, ctx):
         return str(ctx.channel.id) in self.db.smembers(f"{app_name}:c4:allowed_channels")
 
+    async def member_check(self, ctx, member):
+        try:
+            return await commands.converter.MemberConverter().convert(ctx, member)
+        except (commands.BadArgument, commands.NoPrivateMessage):
+            return None
+
     async def message(self, ctx, msg="Error", level=0):
         em = discord.Embed(description=f"{self.message_icon[level]}  {msg}", color=self.message_color[level])
         await ctx.send(embed=em)
@@ -218,7 +228,7 @@ class ConnectFour:
             await self.bot.formatter.format_help_for(ctx, ctx.command, "You need another player to start.")
 
     @commands.group(name="c4", invoke_without_command=True)
-    async def c4(self, ctx, *, arg: int=None):
+    async def c4(self, ctx, *, arg=None):
         """Make a Move
 
         `[p]c4 <column>` will place a chip
@@ -226,7 +236,11 @@ class ConnectFour:
         can use this command."""
         if not self.chan_check(ctx):
             return
-        ctx.message.content = f"{self.bot.command_prefix[0]}c4 move {arg}"
+        member = await self.member_check(ctx, arg)
+        if member:
+            ctx.message.content = f"{self.bot.command_prefix[0]}c4 play {member.mention}"
+        else:
+            ctx.message.content = f"{self.bot.command_prefix[0]}c4 move {arg}"
         await self.bot.process_commands(ctx.message)
 
     @c4.command(name="play", hidden=True)
@@ -237,8 +251,18 @@ class ConnectFour:
         with that user in the current channel."""
         if not self.chan_check(ctx):
             return
-        ctx.message.content = f"{self.bot.command_prefix[0]}play c4 {user.mention}"
-        await self.bot.process_commands(ctx.message)
+        if user:
+            if user.id == ctx.author.id:
+                await self.message(ctx, msg="You cannot start a game with yourself.", level=1)
+            else:
+                session = self.session(ctx)
+                if session:
+                    await self.message(ctx, msg="There is already an active game in this channel.", level=2)
+                else:
+                    self.sessions[ctx.channel.id] = Session(ctx.author, user)
+                    await self.send_board(ctx)
+        else:
+            await self.bot.formatter.format_help_for(ctx, ctx.command, "You need another player to start.")
 
     @c4.command(name="quit", aliases=["end"])
     async def c4_quit(self, ctx):
