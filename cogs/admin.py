@@ -53,6 +53,11 @@ class Admin:
         environment.update(globals())
         return environment
 
+    def pull(self):
+        resp = os.popen("git pull").read()
+        resp = f"```diff\n{resp}\n```"
+        return resp
+
     @checks.sudo()
     @commands.command(hidden=True)
     async def load(self, ctx, *, cog: str, verbose: bool=False):
@@ -208,13 +213,18 @@ class Admin:
     """ It might be cool to make some DB altering commands. """
 
     @checks.sudo()
+    @commands.command(name="pull", hidden=True)
+    async def _pull(self, ctx):
+        resp = self.pull()
+        await ctx.send(resp)
+
+    @checks.sudo()
     @commands.command(hidden=True, name='restart', aliases=["kill", "f"])
     async def _restart(self, ctx, *, arg=None):  # Overwrites builtin kill()
         log.warning("Restarted by command.")
         if arg.lower() == "pull":
-            resp = os.popen("git pull").read()
-            resp = f"```diff\n{resp}\n```\n\n"
-        await ctx.send(content=f"{resp}Restarting by command. . .")
+            resp = self.pull()
+        await ctx.send(content=f"{resp}\nRestarting by command. . .")
         await self.bot.logout()
 
 
