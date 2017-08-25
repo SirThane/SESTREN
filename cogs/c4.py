@@ -237,10 +237,7 @@ class ConnectFour:
         can use this command."""
         if not self.chan_check(ctx):
             return
-        try:
-            member = await self.member_check(ctx, arg)
-        except:
-            member = None
+        member = await self.member_check(ctx, arg)
         if member:
             ctx.message.content = f"{self.bot.command_prefix[0]}c4 play {member.mention}"
         else:
