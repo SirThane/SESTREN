@@ -69,6 +69,7 @@ class Session:
         self.board[row][self.board[row][-1]] = player
         self.board[row][-1] += 1
         self.turn += 1
+        self.timeout = 0
         return self.check([self.board[x][:-1] for x in range(7)])
 
     @property
