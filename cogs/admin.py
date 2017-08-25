@@ -12,6 +12,7 @@ import inspect
 import logging
 from asyncio import sleep
 import sys
+import os
 from io import StringIO
 import contextlib
 from cogs.utils import checks
@@ -207,10 +208,13 @@ class Admin:
     """ It might be cool to make some DB altering commands. """
 
     @checks.sudo()
-    @commands.command(hidden=True, name='restart')
-    async def _restart(self, ctx):  # Overwrites builtin kill()
+    @commands.command(hidden=True, name='restart', aliases=["kill", "f"])
+    async def _restart(self, ctx, *, arg=None):  # Overwrites builtin kill()
         log.warning("Restarted by command.")
-        await ctx.send(content="Restarting.")
+        if arg.lower() == "pull":
+            resp = os.popen("git pull").read()
+            resp = f"```diff\n{resp}\n```\n\n"
+        await ctx.send(content=f"{resp}Restarting by command. . .")
         await self.bot.logout()
 
 
