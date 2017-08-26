@@ -13,7 +13,7 @@ from cogs.Con4Utils import *
 from cogs.utils import c4_math
 from time import gmtime
 
-table = [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0],
+board = [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0],
          [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]]
 
 # table =[]
@@ -22,7 +22,7 @@ table = [[0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0], [0
 #    table.append([int(c) for c in line])
 # print table
 
-table.reverse()
+# table.reverse()
 
 
 def d(s):
@@ -79,8 +79,6 @@ def t_hash(t):
     # resp += i6[100000*t[0][5] + 10000*t[1][5] + 1000*t[2][5] + 100*t[3][5] + 10*t[4][5] + t[5][5]]
     # resp += i6[100000*t[0][6] + 10000*t[1][6] + 1000*t[2][6] + 100*t[3][6] + 10*t[4][6] + t[5][6]]
 
-
-
     resp += i6[100000*t[0][0] + 10000*t[1][1] + 1000*t[2][2] + 100*t[3][3] + 10*t[4][4] + t[5][5]]
     resp += i6[100000*t[0][1] + 10000*t[1][2] + 1000*t[2][3] + 100*t[3][4] + 10*t[4][5] + t[5][6]]
     resp += i6[100000*t[5][1] + 10000*t[4][2] + 1000*t[3][3] + 100*t[2][4] + 10*t[1][5] + t[0][6]]
@@ -102,6 +100,7 @@ def t_hash(t):
 order = [3, 2, 4, 1, 5, 0, 6]
 
 
+# Use board[x][-1]
 def valid_moves(i):
     global order
     moves = []
@@ -114,56 +113,56 @@ def valid_moves(i):
 
 
 # moves in slot x according to valid moves function
-def move(intable, x, who):
-    val = valid_moves(intable)
-    intable[val[x][0]][val[x][1]] = who
+def move(board, x, who):
+    val = valid_moves(board)
+    board[val[x][0]][val[x][1]] = who
 
 
 # Alpha Beta Pruning Search Algorithm
-def ab_prune(intable, depth):
-    def ab(intable, depth, alpha, beta):
+def ab_prune(board, depth):
+    def ab(board, depth, alpha, beta):
         values = []
         v = -10000000
-        for a, s in valid_moves(intable):
-            intable[a][s] = 1
-            v = max(v, abmin(intable, depth - 1, alpha, beta))
+        for a, s in valid_moves(board):
+            board[a][s] = 1
+            v = max(v, abmin(board, depth - 1, alpha, beta))
             values.append(v)
-            intable[a][s] = 0
+            board[a][s] = 0
         largest = max(values)
         dex = values.index(largest)
         return [dex, largest]
 
-    def abmax(intable, depth, alpha, beta):
-        moves = valid_moves(intable)
+    def abmax(board, depth, alpha, beta):
+        moves = valid_moves(board)
         if depth == 0 or not moves:
-            return t_hash(intable)
+            return t_hash(board)
 
         v = -10000000
         for a, s in moves:
-            intable[a][s] = 1
-            v = max(v, abmin(intable, depth - 1, alpha, beta))
-            intable[a][s] = 0
+            board[a][s] = 1
+            v = max(v, abmin(board, depth - 1, alpha, beta))
+            board[a][s] = 0
             if v >= beta:
                 return v
             alpha = max(alpha, v)
         return v
 
-    def abmin(intable, depth, alpha, beta):
-        moves = valid_moves(intable)
+    def abmin(board, depth, alpha, beta):
+        moves = valid_moves(board)
         if depth == 0 or not moves:
-            return t_hash(intable)
+            return t_hash(board)
 
         v = 10000000
         for a, s in moves:
-            intable[a][s] = 2
-            v = min(v, abmax(intable, depth - 1, alpha, beta))
-            intable[a][s] = 0
+            board[a][s] = 2
+            v = min(v, abmax(board, depth - 1, alpha, beta))
+            board[a][s] = 0
             if v <= alpha:
                 return v
             beta = min(beta, v)
         return v
 
-    return ab(intable, depth, -10000000, +10000000)
+    return ab(board, depth, -10000000, +10000000)
 
 
 # returns the minutes*60 + seconds in the actual time
@@ -172,13 +171,13 @@ def time():
 
 
 # Iterative Deepening Search Algorithm
-def iter_deepening(intable):
+def iter_deepening(board):
     global order
     # order=[3,2,4,1,5,0,6]
 
     timeout = time() + 19
     depth = 1
-    res = ab_prune(intable, depth)
+    res = ab_prune(board, depth)
     while True:
         t_start = time()
         if abs(res[1]) > 5000:  # terminal node
@@ -190,7 +189,7 @@ def iter_deepening(intable):
             order[tmp - 1], order[tmp] = order[tmp], order[tmp - 1]
             tmp -= 1
         depth += 1
-        res = ab_prune(intable, depth)
+        res = ab_prune(board, depth)
         tEnd = time()
         runTime = tEnd - t_start
         if timeout < tEnd + (4 * runTime) or depth > 42:
@@ -204,44 +203,47 @@ first = input("Do you want to play first? (y/n) >> ")
 
 # the player plays first
 if first == 'y' or first == 'Y':
-    draw(table)
-    while valid_moves(table):
+    draw(board)
+    while valid_moves(board):
+
+        # Begin loop
+
         n = input("n: ")
-        hmove(table, n)
-        draw(table)
-        if win(table) == 2:
+        hmove(board, n)
+        # draw(table)
+        if win(board) == 2:
             player += 1
-            draw(table)
+            draw(board)
             break
 
         cStart = time()
-        print("Hmmm let me think ?!??!")
-        move(table, iter_deepening(table), 1)
-        draw(table)
-        print("After ", time() - cStart, " seconds thinking!")
-        if win(table) == 1:
+        # print("Hmmm let me think ?!??!")
+        move(board, iter_deepening(board), 1)
+        draw(board)
+        # print("After ", time() - cStart, " seconds thinking!")
+        if win(board) == 1:
             agent += 1
             break
 
 
 # The AI agent plays first
-else:
-    while valid_moves(table):
-        cStart = time()
-        print("Hmmm let me think ?!??!")
-        move(table, iter_deepening(table), 1)
-        draw(table)
-        print("After ", time() - cStart, " seconds thinking!")
-        if win(table) == 1:
-            agent += 1
-            break
-
-        n = input("n: ")
-        hmove(table, n)
-        draw(table)
-        if win(table) == 2:
-            player += 1
-            break
+# else:
+#     while valid_moves(table):
+#         cStart = time()
+#         print("Hmmm let me think ?!??!")
+#         move(table, iter_deepening(table), 1)
+#         draw(table)
+#         print("After ", time() - cStart, " seconds thinking!")
+#         if win(table) == 1:
+#             agent += 1
+#             break
+#
+#         n = input("n: ")
+#         hmove(table, n)
+#         draw(table)
+#         if win(table) == 2:
+#             player += 1
+#             break
 
 if agent == player:
     print("DRAW")

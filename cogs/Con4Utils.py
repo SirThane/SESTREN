@@ -17,7 +17,7 @@ import re
 
 # represnts the table
 # TODO: TABLE DRAW ALREADY PROVIDED
-def draw(a=[]):
+def draw(a: list):
     def tc(a):
         if a == 0:
             return " "
@@ -26,21 +26,15 @@ def draw(a=[]):
         if a == 2:
             return "Y"
 
-    print("\n\n           --------------------------- ")
-    print("           [%s] [%s] [%s] [%s] [%s] [%s] [%s] " % (
-    tc(a[5][0]), tc(a[5][1]), tc(a[5][2]), tc(a[5][3]), tc(a[5][4]), tc(a[5][5]), tc(a[5][6])))
-    print("           [%s] [%s] [%s] [%s] [%s] [%s] [%s] " % (
-    tc(a[4][0]), tc(a[4][1]), tc(a[4][2]), tc(a[4][3]), tc(a[4][4]), tc(a[4][5]), tc(a[4][6])))
-    print("           [%s] [%s] [%s] [%s] [%s] [%s] [%s] " % (
-    tc(a[3][0]), tc(a[3][1]), tc(a[3][2]), tc(a[3][3]), tc(a[3][4]), tc(a[3][5]), tc(a[3][6])))
-    print("           [%s] [%s] [%s] [%s] [%s] [%s] [%s] " % (
-    tc(a[2][0]), tc(a[2][1]), tc(a[2][2]), tc(a[2][3]), tc(a[2][4]), tc(a[2][5]), tc(a[2][6])))
-    print("           [%s] [%s] [%s] [%s] [%s] [%s] [%s] " % (
-    tc(a[1][0]), tc(a[1][1]), tc(a[1][2]), tc(a[1][3]), tc(a[1][4]), tc(a[1][5]), tc(a[1][6])))
-    print("           [%s] [%s] [%s] [%s] [%s] [%s] [%s] " % (
-    tc(a[0][0]), tc(a[0][1]), tc(a[0][2]), tc(a[0][3]), tc(a[0][4]), tc(a[0][5]), tc(a[0][6])))
-    print("           --------------------------- ")
-    print("            1   2   3   4   5   6   7    \n\n")
+    print("\n\n--------------------------- ")
+    print(f"{tc(a[5][0])} {tc(a[5][1])} {tc(a[5][2])} {tc(a[5][3])} {tc(a[5][4])} {tc(a[5][5])} {tc(a[5][6])}")
+    print(f"{tc(a[4][0])} {tc(a[4][1])} {tc(a[4][2])} {tc(a[4][3])} {tc(a[4][4])} {tc(a[4][5])} {tc(a[4][6])}")
+    print(f"{tc(a[3][0])} {tc(a[3][1])} {tc(a[3][2])} {tc(a[3][3])} {tc(a[3][4])} {tc(a[3][5])} {tc(a[3][6])}")
+    print(f"{tc(a[2][0])} {tc(a[2][1])} {tc(a[2][2])} {tc(a[2][3])} {tc(a[2][4])} {tc(a[2][5])} {tc(a[2][6])}")
+    print(f"{tc(a[1][0])} {tc(a[1][1])} {tc(a[1][2])} {tc(a[1][3])} {tc(a[1][4])} {tc(a[1][5])} {tc(a[1][6])}")
+    print(f"{tc(a[0][0])} {tc(a[0][1])} {tc(a[0][2])} {tc(a[0][3])} {tc(a[0][4])} {tc(a[0][5])} {tc(a[0][6])}")
+    print("--------------------------- ")
+    print(" 1   2   3   4   5   6   7    \n\n")
 
 
 # computes string hash value of the state of the table
@@ -59,7 +53,7 @@ def draw(a=[]):
 
 # determines whether there is a winner
 # TODO: WIN CONDITION ALREADY PROVIDED
-def win(intable=[]):
+def win(intable: list):
     w1 = [1, 1, 1, 1]
     w2 = [2, 2, 2, 2]
 
@@ -98,7 +92,7 @@ def win(intable=[]):
 
 # simular to validMoves but with None if the move of that col in not valid
 # TODO: PLAYER MOVE ALREADY PROVIDED
-def humanMoves(intable=[]):
+def humanMoves(intable: list):
     cols = []
     rows = []
     for col in range(7):
