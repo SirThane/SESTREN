@@ -45,16 +45,16 @@ def draw(a=[]):
 
 # computes string hash value of the state of the table
 # TODO: FIND OUT WHAT THIS IS USED FOR
-def toHash(table):
-    out = ""
-    for j in range(7):
-        for i in range(6):
-            if table[i][j] == 0:
-                break
-            else:
-                out += str(table[i][j])
-        out += "|"
-    return out
+# def toHash(table):
+#     out = ""
+#     for j in range(7):
+#         for i in range(6):
+#             if table[i][j] == 0:
+#                 break
+#             else:
+#                 out += str(table[i][j])
+#         out += "|"
+#     return out
 
 
 # determines whether there is a winner

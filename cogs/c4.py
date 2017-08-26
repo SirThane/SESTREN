@@ -4,7 +4,6 @@ Written for Python 3.6 and discord.py 1.0.0a"""
 import discord
 from discord.ext import commands
 from .utils import checks
-from main import app_name
 
 
 # class Player:
@@ -122,7 +121,7 @@ class ConnectFourSession:
 class ConnectFour:
     """Play a game of Connect Four
 
-    See the help manual for individual
+    See `[p]help c4` manual for individual
     commands for more information.
 
     The classic game of Connect Four.
@@ -134,6 +133,7 @@ class ConnectFour:
     def __init__(self, bot):
         self.bot = bot
         self.db = bot.db
+        self.app_name = bot.app_name
         self.sessions = {}
         self.timeout = 120
         self.timeout_incr = 5
@@ -144,7 +144,7 @@ class ConnectFour:
         return self.sessions.get(ctx.channel.id, None)
 
     def chan_check(self, ctx):
-        return str(ctx.channel.id) in self.db.smembers(f"{app_name}:c4:allowed_channels")
+        return str(ctx.channel.id) in self.db.smembers(f"{self.app_name}:c4:allowed_channels")
 
     async def member_check(self, ctx, member):
         try:
@@ -195,46 +195,49 @@ class ConnectFour:
             if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
                 await ctx.message.delete()
 
-    @commands.group(name="play")
-    async def play(self, ctx):
-        """Connect Four
-
-        Use `[p]c4 <column>` to place a piece.
-        First to get four in a row, whether
-        horizontal, vertical, or diagonal wins."""
-        if not self.chan_check(ctx):
-            return
-        if not ctx.invoked_subcommand:
-            await self.bot.formatter.format_help_for(ctx, ctx.command)
-
-    @play.command(name="c4")
-    async def _c4(self, ctx, *, user: discord.Member=None):
-        """Star a game of Connect Four
-
-        `[p]c4 start @user` will start a game
-        with that user in the current channel."""
-        if not self.chan_check(ctx):
-            return
-        if user:
-            if user.id == ctx.author.id:
-                await self.message(ctx, msg="You cannot start a game with yourself.", level=1)
-            else:
-                session = self.session(ctx)
-                if session:
-                    await self.message(ctx, msg="There is already an active game in this channel.", level=2)
-                else:
-                    self.sessions[ctx.channel.id] = ConnectFourSession(ctx.author, user)
-                    await self.send_board(ctx)
-        else:
-            await self.bot.formatter.format_help_for(ctx, ctx.command, "You need another player to start.")
+    # @commands.group(name="play")
+    # async def play(self, ctx):
+    #     """Connect Four
+    #
+    #     Use `[p]c4 <column>` to place a piece.
+    #     First to get four in a row, whether
+    #     horizontal, vertical, or diagonal wins."""
+    #     if not self.chan_check(ctx):
+    #         return
+    #     if not ctx.invoked_subcommand:
+    #         await self.bot.formatter.format_help_for(ctx, ctx.command)
+    #
+    # @play.command(name="c4")
+    # async def _c4(self, ctx, *, user: discord.Member=None):
+    #     """Star a game of Connect Four
+    #
+    #     `[p]c4 start @user` will start a game
+    #     with that user in the current channel."""
+    #     if not self.chan_check(ctx):
+    #         return
+    #     if user:
+    #         if user.id == ctx.author.id:
+    #             await self.message(ctx, msg="You cannot start a game with yourself.", level=1)
+    #         else:
+    #             session = self.session(ctx)
+    #             if session:
+    #                 await self.message(ctx, msg="There is already an active game in this channel.", level=2)
+    #             else:
+    #                 self.sessions[ctx.channel.id] = ConnectFourSession(ctx.author, user)
+    #                 await self.send_board(ctx)
+    #     else:
+    #         await self.bot.formatter.format_help_for(ctx, ctx.command, "You need another player to start.")
 
     @commands.group(name="c4", invoke_without_command=True)
     async def c4(self, ctx, *, arg=None):
-        """Make a Move
+        """Connect Four
 
-        `[p]c4 <column>` will place a chip
-        in that row. Only the current player
-        can use this command."""
+        `[p]c4 @user` to start a game with
+        another user.
+
+        `[p]c4 <column>` to place a piece.
+        First to get four in a row, whether
+        horizontal, vertical, or diagonal wins."""
         if not self.chan_check(ctx):
             return
         member = await self.member_check(ctx, arg)
@@ -265,33 +268,6 @@ class ConnectFour:
         else:
             await self.bot.formatter.format_help_for(ctx, ctx.command, "You need another player to start.")
 
-    @c4.command(name="quit", aliases=["end"])
-    async def c4_quit(self, ctx):
-        """Quits an active game of Connect Four
-
-        `[p]c4 quit` can be used by either player
-        to quit their game in the channel."""
-        if not self.chan_check(ctx):
-            return
-        session = self.session(ctx)
-        if session and ctx.author in [session.p1, session.p2]:
-            await self.send_board(ctx, win="Forfeit")
-        else:
-            await self.message(ctx, msg="No active game in this channel.", level=1)
-
-    @c4.command(name="board")
-    async def c4_board(self, ctx):
-        """Resends the current board
-
-        Can be used if the board gets lost in the chat"""
-        if not self.chan_check(ctx):
-            return
-        session = self.sessions.get(ctx.channel.id, None)
-        if session and ctx.author in [session.p1, session.p2]:
-            await self.send_board(ctx)
-        else:
-            await self.message(ctx, msg="No active game in this channel.", level=1)
-
     @c4.command(name="move")
     async def c4_move(self, ctx, row: int):
         """Make a Move
@@ -316,12 +292,43 @@ class ConnectFour:
         else:
             await self.message(ctx, msg="No active game in this channel.", level=1)
 
+    @c4.command(name="board")
+    async def c4_board(self, ctx):
+        """Resends the current board
+
+        Can be used if the board gets lost in the chat"""
+        if not self.chan_check(ctx):
+            return
+        session = self.sessions.get(ctx.channel.id, None)
+        if session and ctx.author in [session.p1, session.p2]:
+            await self.send_board(ctx)
+        else:
+            await self.message(ctx, msg="No active game in this channel.", level=1)
+
+    @c4.command(name="quit", aliases=["end", "stop"])
+    async def c4_quit(self, ctx):
+        """Quits an active game of Connect Four
+
+        `[p]c4 quit` can be used by either player
+        to quit their game in the channel."""
+        if not self.chan_check(ctx):
+            return
+        session = self.session(ctx)
+        if session and ctx.author in [session.p1, session.p2]:
+            await self.send_board(ctx, win="Forfeit")
+        else:
+            await self.message(ctx, msg="No active game in this channel.", level=1)
+
     @checks.sudo()
     @c4.command(name="enable", hidden=True)
     async def c4_enable(self, ctx, *, chan: discord.TextChannel=None):
+        """Enable Connect Four on a channel
+
+        Run without an argument to enable on the current channel
+        Pass a channel as an argument to enable on that channel"""
         if not chan:
             chan = ctx.channel
-        if self.db.sadd(f"{app_name}:c4:allowed_channels", chan.id):
+        if self.db.sadd(f"{self.app_name}:c4:allowed_channels", chan.id):
             await self.message(ctx, msg="Connect Four successfully enabled on channel.")
         else:
             await self.message(ctx, msg="Connect Four already enabled on channel.", level=1)
@@ -329,9 +336,13 @@ class ConnectFour:
     @checks.sudo()
     @c4.command(name="disable", hidden=True)
     async def c4_disable(self, ctx, *, chan: discord.TextChannel=None):
+        """Disable Connect Four on a channel
+
+        Run without an argument to disabled on the current channel
+        Pass a channel as an argument to disable on that channel"""
         if not chan:
             chan = ctx.channel
-        if self.db.srem(f"{app_name}:c4:allowed_channels", chan.id):
+        if self.db.srem(f"{self.app_name}:c4:allowed_channels", chan.id):
             await self.message(ctx, msg="Connect Four successfully disabled on channel.")
         else:
             await self.message(ctx, msg="Connect Four already disabled on channel.", level=1)
@@ -339,15 +350,15 @@ class ConnectFour:
     @checks.sudo()
     @c4.command(name="games", hidden=True)
     async def c4_games(self, ctx):
+        """Shows the number of running sessions"""
         await self.message(ctx, msg=f"Total running games: {len(self.sessions.keys())}")
 
     @checks.sudo()
     @c4.command(name="kill", hidden=True)
     async def c4_kill(self, ctx, *, _all: bool=False):
-        """Aministrative kill command
+        """Administrative kill command
 
-        This will kill all running games of
-        Connect Four in all channels."""
+        This will kill a running game in the current channel"""
         if not _all:
             if self.sessions.pop(ctx.channel.id, None):
                 await self.message(ctx, msg="Current game in this channel has been terminated.")
@@ -360,6 +371,9 @@ class ConnectFour:
     @checks.sudo()
     @c4.command(name="killall", hidden=True)
     async def c4_killall(self, ctx):
+        """Administrative kill command
+
+        This will kill all running games in all channels"""
         ctx.message.content = f"{self.bot.command_prefix[0]}kill True"
         await self.bot.process_commands(ctx.message)
 
