@@ -40,6 +40,7 @@ db = utils.StrictRedis(**conf)
 config = f'{app_name}:config'
 bot = commands.Bot(command_prefix=db.hget(f'{config}:prefix', 'default'), **db.hgetall(f'{config}:instance'))
 bot.db = db
+bot.app_name = app_name
 
 
 @bot.listen()

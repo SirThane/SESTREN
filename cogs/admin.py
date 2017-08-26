@@ -215,8 +215,7 @@ class Admin:
     @checks.sudo()
     @commands.command(name="pull", hidden=True)
     async def _pull(self, ctx):
-        resp = self.pull()
-        await ctx.send(resp)
+        await ctx.send(embed=discord.Embed(title="Git Pull", description=self.pull(), color=0x00FF00))
 
     @checks.sudo()
     @commands.command(hidden=True, name='restart', aliases=["kill", "f"])
