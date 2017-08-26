@@ -5,6 +5,7 @@ import discord
 from discord.ext import commands
 from .utils import checks
 from cogs.Con4Utils import *
+from time import gmtime
 
 
 v_5ki = """0 0
@@ -3252,13 +3253,13 @@ ev_table = """0
 -15000"""
 
 
-def d(s):
+def to_dict(s):
     return {int(x): int(y) for (x, y) in [z.split(' ') for z in s.split('\n')]}
 
 i4 = [int(i) for i in ev_table.split('\n')]
-i5 = d(v_5ki)
-i6 = d(v_6ki)
-i7 = d(v_7ki)
+i5 = to_dict(v_5ki)
+i6 = to_dict(v_6ki)
+i7 = to_dict(v_7ki)
 
 
 def t_hash(t):
@@ -3276,20 +3277,20 @@ def t_hash(t):
             i += (10 ** x) * t[5 - x][y]
         resp += i6[i]
 
-    resp += i6[100000 * t[0][0] + 10000 * t[1][1] + 1000 * t[2][2] + 100 * t[3][3] + 10 * t[4][4] + t[5][5]]
-    resp += i6[100000 * t[0][1] + 10000 * t[1][2] + 1000 * t[2][3] + 100 * t[3][4] + 10 * t[4][5] + t[5][6]]
-    resp += i6[100000 * t[5][1] + 10000 * t[4][2] + 1000 * t[3][3] + 100 * t[2][4] + 10 * t[1][5] + t[0][6]]
-    resp += i6[100000 * t[5][0] + 10000 * t[4][1] + 1000 * t[3][2] + 100 * t[2][3] + 10 * t[1][4] + t[0][5]]
+    resp += i6[100000*t[0][0] + 10000*t[1][1] + 1000*t[2][2] + 100*t[3][3] + 10*t[4][4] + t[5][5]]
+    resp += i6[100000*t[0][1] + 10000*t[1][2] + 1000*t[2][3] + 100*t[3][4] + 10*t[4][5] + t[5][6]]
+    resp += i6[100000*t[5][1] + 10000*t[4][2] + 1000*t[3][3] + 100*t[2][4] + 10*t[1][5] + t[0][6]]
+    resp += i6[100000*t[5][0] + 10000*t[4][1] + 1000*t[3][2] + 100*t[2][3] + 10*t[1][4] + t[0][5]]
 
-    resp += i5[10000 * t[1][0] + 1000 * t[2][1] + 100 * t[3][2] + 10 * t[4][3] + t[5][4]]
-    resp += i5[10000 * t[0][2] + 1000 * t[1][3] + 100 * t[2][4] + 10 * t[3][5] + t[4][6]]
-    resp += i5[10000 * t[4][0] + 1000 * t[3][1] + 100 * t[2][2] + 10 * t[1][3] + t[0][4]]
-    resp += i5[10000 * t[5][2] + 1000 * t[4][3] + 100 * t[3][4] + 10 * t[2][5] + t[1][6]]
+    resp += i5[10000*t[1][0] + 1000*t[2][1] + 100*t[3][2] + 10*t[4][3] + t[5][4]]
+    resp += i5[10000*t[0][2] + 1000*t[1][3] + 100*t[2][4] + 10*t[3][5] + t[4][6]]
+    resp += i5[10000*t[4][0] + 1000*t[3][1] + 100*t[2][2] + 10*t[1][3] + t[0][4]]
+    resp += i5[10000*t[5][2] + 1000*t[4][3] + 100*t[3][4] + 10*t[2][5] + t[1][6]]
 
-    resp += i4[27 * t[0][3] + 9 * t[1][4] + 3 * t[2][5] + t[3][6]]
-    resp += i4[27 * t[2][0] + 9 * t[3][1] + 3 * t[4][2] + t[5][3]]
-    resp += i4[27 * t[3][0] + 9 * t[2][1] + 3 * t[1][2] + t[0][3]]
-    resp += i4[27 * t[5][3] + 9 * t[4][4] + 3 * t[3][5] + t[2][6]]
+    resp += i4[27*t[0][3] + 9*t[1][4] + 3*t[2][5] + t[3][6]]
+    resp += i4[27*t[2][0] + 9*t[3][1] + 3*t[4][2] + t[5][3]]
+    resp += i4[27*t[3][0] + 9*t[2][1] + 3*t[1][2] + t[0][3]]
+    resp += i4[27*t[5][3] + 9*t[4][4] + 3*t[3][5] + t[2][6]]
     return resp
 
 
@@ -3324,15 +3325,19 @@ class ConnectFourSession:
         self.board = [[0 for x in range(7)] for y in range(7)]
         self.turn = 0
         self.timeout = 0
+        self.order = [3, 2, 4, 1, 5, 0, 6]
         self.msg = None
         self.emojis = {
             0: "⚪",  # :white_circle: TODO: Move the emojis into Cog.
-            self.p1.id: "🔴",  # :red_circle:
-            self.p2.id: "🔵",  # :large_blue_circle:
+            self.p1.piece: "🔴",  # :red_circle:
+            self.p2.piece: "🔵",  # :large_blue_circle:
         }
 
     @property
     def current_player(self):
+        """
+        :return: Instance of Player for current player
+        """
         if self.turn % 2 == 1:
             return self.p1
         else:
@@ -3340,13 +3345,30 @@ class ConnectFourSession:
 
     @property
     def current_player_chip(self):
+        """
+        :return: Emoji corresponding to current player's piece
+        """
         return self.player_chip(self.current_player.member)
 
     def player_chip(self, player: discord.Member):
+        """
+        :param player: Instance of discord.Member for player
+        :return: Emoji corresponding to player piece
+        """
         return self.emojis.get(player.id, 0)
+
+    def player_piece(self, p_id):
+        """
+        :param p_id: User ID of player
+        :return: Player number
+        """
+        return [p.piece for p in [self.p1, self.p2] if p_id == p.id][0]
 
     @property
     def color(self):
+        """
+        :return: attr of discord.Colour for player's default avatar
+        """
         name = self.current_player.default_avatar.name
         if name == "grey":
             name = "light_grey"
@@ -3354,21 +3376,35 @@ class ConnectFourSession:
 
     @property
     def valid_moves(self):
+        """
+        :return: List of position coords (list x, y) that are not full
+        """
         return [[i, self.board[i][-1]] for i in range(7) if self.board[i][-1] != 6]
 
-    def play(self, player, row):
-        self.board[row][self.board[row][-1]] = player
-        self.board[row][-1] += 1
+    def play(self, player, column):
+        """
+        :param player: User ID of player making a move
+        :param column: Column played
+        :return: Win Condition if Game Over
+        """
+        self.board[column][self.board[column][-1]] = self.player_piece(player)
+        self.board[column][-1] += 1
         self.turn += 1
         self.timeout = 0
         return self.check(self.get_board)
 
     @property
     def get_board(self):
+        """
+        :return: Nested list of current board without column check index
+        """
         return [self.board[x][:-1] for x in range(7)]
 
     @property
     def draw_board(self):
+        """
+        :return: String representation of current board using Emojis for pieces
+        """
         board = []
         for row in self.board:
             board.append([self.emojis[i] for i in row[:-1]][::-1])
@@ -3376,13 +3412,18 @@ class ConnectFourSession:
         return "\n".join(["{}{}{}{}{}{}{}".format(*[board[y][x] for y in range(7)]) for x in range(6)])
 
     def check(self, board):
+        """
+        :param board: Current board
+        :return: Instance of Player for player if win condition detected,
+        else, "Draw" if board full without win, else, None
+        """
         for x in range(7):
             for y in range(3):
                 if board[x][y] != 0 and \
                                 board[x][y] == board[x][y + 1] and \
                                 board[x][y] == board[x][y + 2] and \
                                 board[x][y] == board[x][y + 3]:
-                    return self.p1 if board[x][y] == self.p1.id else self.p2
+                    return self.p1 if board[x][y] == self.p1.piece else self.p2
 
         for x in range(4):
             for y in range(6):
@@ -3390,7 +3431,7 @@ class ConnectFourSession:
                                 board[x][y] == board[x + 1][y] and \
                                 board[x][y] == board[x + 2][y] and \
                                 board[x][y] == board[x + 3][y]:
-                    return self.p1 if board[x][y] == self.p1.id else self.p2
+                    return self.p1 if board[x][y] == self.p1.piece else self.p2
 
         for x in range(4):
             for y in range(3):
@@ -3398,7 +3439,7 @@ class ConnectFourSession:
                                 board[x][y] == board[x + 1][y + 1] and \
                                 board[x][y] == board[x + 2][y + 2] and \
                                 board[x][y] == board[x + 3][y + 3]:
-                    return self.p1 if board[x][y] == self.p1.id else self.p2
+                    return self.p1 if board[x][y] == self.p1.piece else self.p2
 
         for x in range(3, 7):
             for y in range(3):
@@ -3406,16 +3447,12 @@ class ConnectFourSession:
                                 board[x][y] == board[x - 1][y + 1] and \
                                 board[x][y] == board[x - 2][y + 2] and \
                                 board[x][y] == board[x - 3][y + 3]:
-                    return self.p1 if board[x][y] == self.p1.id else self.p2
+                    return self.p1 if board[x][y] == self.p1.piece else self.p2
 
         if all(map(lambda n: n == 6, [r[6] for r in self.board])):
             return "Draw"
 
         return None
-
-    @property
-    def order(self):
-        return [3, 2, 4, 1, 5, 0, 6]
 
     # moves in slot x according to valid moves function
     def move(self, board, x, who):
@@ -3424,43 +3461,43 @@ class ConnectFourSession:
 
     # Alpha Beta Pruning Search Algorithm
     def ab_prune(self, board, depth):
-        def ab(board, depth, alpha, beta):
+        def ab(b, d, alpha, beta):
             values = []
             v = -10000000
             for a, s in self.valid_moves:
-                board[a][s] = 1
-                v = max(v, abmin(board, depth - 1, alpha, beta))
+                b[a][s] = 1
+                v = max(v, abmin(b, d - 1, alpha, beta))
                 values.append(v)
-                board[a][s] = 0
+                b[a][s] = 0
             largest = max(values)
             dex = values.index(largest)
             return [dex, largest]
 
-        def abmax(board, depth, alpha, beta):
-            moves = valid_moves(board)
-            if depth == 0 or not moves:
-                return t_hash(board)
+        def abmax(b, d, alpha, beta):
+            moves = self.valid_moves
+            if d == 0 or not moves:
+                return t_hash(b)
 
             v = -10000000
             for a, s in moves:
-                board[a][s] = 1
-                v = max(v, abmin(board, depth - 1, alpha, beta))
-                board[a][s] = 0
+                b[a][s] = 1
+                v = max(v, abmin(b, d - 1, alpha, beta))
+                b[a][s] = 0
                 if v >= beta:
                     return v
                 alpha = max(alpha, v)
             return v
 
-        def abmin(board, depth, alpha, beta):
-            moves = valid_moves(board)
-            if depth == 0 or not moves:
-                return t_hash(board)
+        def abmin(b, d, alpha, beta):
+            moves = self.valid_moves
+            if d == 0 or not moves:
+                return t_hash(b)
 
             v = 10000000
             for a, s in moves:
-                board[a][s] = 2
-                v = min(v, abmax(board, depth - 1, alpha, beta))
-                board[a][s] = 0
+                b[a][s] = 2
+                v = min(v, abmax(b, d - 1, alpha, beta))
+                b[a][s] = 0
                 if v <= alpha:
                     return v
                 beta = min(beta, v)
@@ -3469,57 +3506,59 @@ class ConnectFourSession:
         return ab(board, depth, -10000000, +10000000)
 
     # returns the minutes*60 + seconds in the actual time
-    def time():
+    @property
+    def time(self):
         return ((gmtime()[4]) * 60) + gmtime()[5]
 
     # Iterative Deepening Search Algorithm
-    def iter_deepening(board):
-        global order
-        # order=[3,2,4,1,5,0,6]
-
-        timeout = time() + 19
+    def iter_deepening(self, board):
+        """
+        :param board:
+        :return:
+        """
+        timeout = self.time + 19
         depth = 1
-        res = ab_prune(board, depth)
+        res = self.ab_prune(board, depth)
         while True:
-            t_start = time()
+            t_start = self.time
             if abs(res[1]) > 5000:  # terminal node
                 print("Nearly done!")
                 return res[0]
             tmp = res[0]
             # changing the order in considering moves
             while tmp != 0:
-                order[tmp - 1], order[tmp] = order[tmp], order[tmp - 1]
+                self.order[tmp - 1], self.order[tmp] = self.order[tmp], self.order[tmp - 1]
                 tmp -= 1
             depth += 1
-            res = ab_prune(board, depth)
-            tEnd = time()
+            res = self.ab_prune(board, depth)
+            tEnd = self.time
             runTime = tEnd - t_start
             if timeout < tEnd + (4 * runTime) or depth > 42:
-                print("DEPTH", depth)
                 return res[0]
 
-        while valid_moves(board):
-            n = input("n: ")
-            hmove(board, n)
-            # draw(table)
-            if win(board) == 2:
-                player += 1
-                draw(board)
-                break
+        # # TODO: Will be replaced with own win cond
+        # while self.valid_moves:
+        #     n = input("n: ")
+        #     hmove(self.board, n)
+        #     # draw(table)
+        #     if win(self.board) == 2:
+        #         player += 1
+        #         draw(board)
+        #         break
+        #
+        #     # cStart = time()
+        #     # print("Hmmm let me think ?!??!")
+        #     move(board, iter_deepening(board), 1)
+        #     draw(board)
+        #     # print("After ", time() - cStart, " seconds thinking!")
+        #     if win(board) == 1:
+        #         agent += 1
+        #         break
 
-            cStart = time()
-            # print("Hmmm let me think ?!??!")
-            move(board, iter_deepening(board), 1)
-            draw(board)
-            # print("After ", time() - cStart, " seconds thinking!")
-            if win(board) == 1:
-                agent += 1
-                break
-
-    if agent == player:
-        print("DRAW")
-    else:
-        print("AI AGENT ", agent, " : ", player, " PLAYER")
+    # if agent == player:
+    #     print("DRAW")
+    # else:
+    #     print("AI AGENT ", agent, " : ", player, " PLAYER")
 
 
 class ConnectFour:
