@@ -4,7 +4,6 @@ Written for Python 3.6 and discord.py 1.0.0a"""
 import discord
 from discord.ext import commands
 from .utils import checks
-from cogs.Con4Utils import *
 from time import gmtime
 
 
@@ -3358,7 +3357,7 @@ class ConnectFourSession:
         """
         return self.player_chip(self.current_player.member)
 
-    def player_chip(self, player: discord.Member):  # TODO: THIS IS WHERE EMOJIS ARE BREAKING
+    def player_chip(self, player: discord.Member):
         """
         :param player: Instance of discord.Member for player
         :return: Emoji corresponding to player piece
@@ -3382,12 +3381,22 @@ class ConnectFourSession:
             name = "light_grey"
         return getattr(discord.Colour, name)()
 
-    @property
-    def valid_moves(self):
-        """
-        :return: List of position coords (list x, y) that are not full
-        """
-        return [[i, self.board[i][-1]] for i in range(7) if self.board[i][-1] != 6]
+    # @property
+    # def valid_moves(self):
+    #     """
+    #     :return: List of position coords (list x, y) that are not full
+    #     """
+    #     return [[self.board[i][-1], i] for i in self.order if self.board[i][-1] != 6]
+
+    def valid_moves(self, t):
+        moves = []
+        for col in self.order:
+            for row in range(6):
+                if t[row][col] == 0:
+                    moves.append([row, col])
+                    break
+        print(f"Valid moves{moves}")
+        return moves
 
     def play(self, player, column):
         """
@@ -3400,6 +3409,14 @@ class ConnectFourSession:
         self.turn += 1
         self.timeout = 0
         return self.check(self.get_board)
+
+    @property
+    def rotated_board(self):
+        return [[self.get_board[x][y] for x in range(7)] for y in range(6)]
+
+    def s_play(self):
+        print("s_play")
+        return self.play(self.current_player.id, self.iter_deepening(self.rotated_board))
 
     @property
     def get_board(self):
@@ -3464,15 +3481,17 @@ class ConnectFourSession:
 
     # moves in slot x according to valid moves function
     def move(self, board, x, who):
-        val = self.valid_moves
+        val = self.valid_moves(board)
         board[val[x][0]][val[x][1]] = who
 
     # Alpha Beta Pruning Search Algorithm
     def ab_prune(self, board, depth):
+        print("ab_prune")
         def ab(b, d, alpha, beta):
+            print('ab')
             values = []
             v = -10000000
-            for a, s in self.valid_moves:
+            for a, s in self.valid_moves(b):
                 b[a][s] = 1
                 v = max(v, abmin(b, d - 1, alpha, beta))
                 values.append(v)
@@ -3482,7 +3501,7 @@ class ConnectFourSession:
             return [dex, largest]
 
         def abmax(b, d, alpha, beta):
-            moves = self.valid_moves
+            moves = self.valid_moves(b)
             if d == 0 or not moves:
                 return t_hash(b)
 
@@ -3497,7 +3516,7 @@ class ConnectFourSession:
             return v
 
         def abmin(b, d, alpha, beta):
-            moves = self.valid_moves
+            moves = self.valid_moves(b)
             if d == 0 or not moves:
                 return t_hash(b)
 
@@ -3530,7 +3549,6 @@ class ConnectFourSession:
         while True:
             t_start = self.time
             if abs(res[1]) > 5000:  # terminal node
-                print("Nearly done!")
                 return res[0]
             tmp = res[0]
             # changing the order in considering moves
@@ -3642,7 +3660,7 @@ class ConnectFour:
             em.set_footer(text=f"{session.current_player.name}'s turn: {session.current_player_chip}")
             session.msg = await ctx.send(embed=em)
 
-        if not win == "Timeout":
+        if not win == "Timeout" and session.current_player.member is not ctx.guild.me:
             if ctx.channel.permissions_for(ctx.guild.me).manage_messages:
                 await ctx.message.delete()
 
@@ -3674,15 +3692,19 @@ class ConnectFour:
         if not self.chan_check(ctx):
             return
         if user:
-            if user.id == ctx.author.id:
+            session = self.session(ctx)
+            if session:
+                await self.message(ctx, msg="There is already an active game in this channel.", level=2)
+            elif user.id == ctx.author.id:
                 await self.message(ctx, msg="You cannot start a game with yourself.", level=1)
+            # elif user.id == self.bot.user.id:
+            #     self.sessions[ctx.channel.id] = ConnectFourSession(user, ctx)
+            #     await self.send_board(ctx, init=True)
+            #     self.sessions[ctx.channel.id].s_play()
+            #     await self.send_board(ctx)
             else:
-                session = self.session(ctx)
-                if session:
-                    await self.message(ctx, msg="There is already an active game in this channel.", level=2)
-                else:
-                    self.sessions[ctx.channel.id] = ConnectFourSession(user, ctx)
-                    await self.send_board(ctx, init=True)
+                self.sessions[ctx.channel.id] = ConnectFourSession(user, ctx)
+                await self.send_board(ctx, init=True)
         else:
             await self.bot.formatter.format_help_for(ctx, ctx.command, "You need another player to start.")
 
@@ -3703,6 +3725,9 @@ class ConnectFour:
                     if session.board[column][-1] < 6:
                         check = session.play(ctx.author.id, column)
                         await self.send_board(ctx, win=check)
+                        # if session.p1.member == ctx.guild.me:
+                        #     check = session.s_play()
+                        #     await self.send_board(ctx, win=check)
                     else:
                         await self.message(ctx, "That row is full. Select another.", level=2)
                 else:
