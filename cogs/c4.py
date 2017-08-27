@@ -3300,6 +3300,9 @@ class Player:
         self.member = member
         self.piece = piece
 
+    def __str__(self):
+        return f"{self.member.name}"
+
     @property
     def name(self):
         return self.member.name
@@ -3319,9 +3322,10 @@ class Player:
 
 class ConnectFourSession:
     """Active Session of Connect Four"""
-    def __init__(self, p1, p2):
+    def __init__(self, p1, ctx):
         self.p1 = Player(p1, 1)  # These will be discord.Member objects of players
-        self.p2 = Player(p2, 2)  # `p1` being ctx.author and `p2 being the ping
+        self.p2 = Player(ctx.author, 2)  # `p1` being ctx.author and `p2 being the ping
+        self.ctx = ctx
         self.board = [[0 for x in range(7)] for y in range(7)]
         self.turn = 0
         self.timeout = 0
@@ -3333,12 +3337,16 @@ class ConnectFourSession:
             self.p2.piece: "🔵",  # :large_blue_circle:
         }
 
+    def __str__(self):
+        return f"{self.ctx.guild} | #{self.ctx.channel} | {self.p1.name} v {self.p2.name} | " \
+               f"Turn: {(self.turn + 2) // 2} | Current: {self.current_player.name}"
+
     @property
     def current_player(self):
         """
         :return: Instance of Player for current player
         """
-        if self.turn % 2 == 1:
+        if self.turn % 2 == 0:
             return self.p1
         else:
             return self.p2
@@ -3350,12 +3358,12 @@ class ConnectFourSession:
         """
         return self.player_chip(self.current_player.member)
 
-    def player_chip(self, player: discord.Member):
+    def player_chip(self, player: discord.Member):  # TODO: THIS IS WHERE EMOJIS ARE BREAKING
         """
         :param player: Instance of discord.Member for player
         :return: Emoji corresponding to player piece
         """
-        return self.emojis.get(player.id, 0)
+        return self.emojis.get(self.player_piece(player.id), 0)
 
     def player_piece(self, p_id):
         """
@@ -3619,12 +3627,12 @@ class ConnectFour:
                 turn = f"Game Over!\n{win.name} wins! 🎉"
                 color = 0xFDFF00
         else:
-            turn = "New game!" if init else f"Turn: {(session.turn + 2) // 2}"
+            turn = "New game! Turn: 1" if init else f"Turn: {(session.turn + 2) // 2}"
             color = session.color
 
         em = discord.Embed(title=f"{session.player_chip(session.p1)}{session.p1.name} 🆚 "
                                  f"{session.p2.name}{session.player_chip(session.p2)}",
-                           description=f"{turn}\n\n:one::two::three::four::five::six::seven:\n{session.get_board}",
+                           description=f"{turn}\n\n:one::two::three::four::five::six::seven:\n{session.draw_board}",
                            color=color)
 
         if win:
@@ -3673,13 +3681,13 @@ class ConnectFour:
                 if session:
                     await self.message(ctx, msg="There is already an active game in this channel.", level=2)
                 else:
-                    self.sessions[ctx.channel.id] = ConnectFourSession(ctx.author, user)
-                    await self.send_board(ctx)
+                    self.sessions[ctx.channel.id] = ConnectFourSession(user, ctx)
+                    await self.send_board(ctx, init=True)
         else:
             await self.bot.formatter.format_help_for(ctx, ctx.command, "You need another player to start.")
 
     @c4.command(name="move")
-    async def c4_move(self, ctx, row: int):
+    async def c4_move(self, ctx, column: int):
         """Make a Move
 
         `[p]c4 <column>` will place a chip
@@ -3687,13 +3695,13 @@ class ConnectFour:
         can use this command."""
         if not self.chan_check(ctx):
             return
-        row -= 1
+        column -= 1
         session = self.session(ctx)
         if session:
-            if ctx.author == session.current_player:
-                if row in range(7):
-                    if session.board[row][-1] < 6:
-                        check = session.play(ctx.author.id, row)
+            if ctx.author == session.current_player.member:
+                if column in range(7):
+                    if session.board[column][-1] < 6:
+                        check = session.play(ctx.author.id, column)
                         await self.send_board(ctx, win=check)
                     else:
                         await self.message(ctx, "That row is full. Select another.", level=2)
@@ -3724,7 +3732,7 @@ class ConnectFour:
         if not self.chan_check(ctx):
             return
         session = self.session(ctx)
-        if session and ctx.author in [session.p1, session.p2]:
+        if session and ctx.author in [session.p1.member, session.p2.member]:
             await self.send_board(ctx, win="Forfeit")
         else:
             await self.message(ctx, msg="No active game in this channel.", level=1)
@@ -3761,7 +3769,8 @@ class ConnectFour:
     @c4.command(name="games", hidden=True)
     async def c4_games(self, ctx):
         """Shows the number of running sessions"""
-        await self.message(ctx, msg=f"Total running games: {len(self.sessions.keys())}")
+        sessions = '\n'.join([str(s) for s in self.sessions.values()])
+        await self.message(ctx, msg=f"Total running games: {len(self.sessions.keys())}\n\n{sessions}")
 
     @checks.sudo()
     @c4.command(name="kill", hidden=True)
