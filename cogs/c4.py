@@ -3708,7 +3708,7 @@ class ConnectFour:
         else:
             await self.bot.formatter.format_help_for(ctx, ctx.command, "You need another player to start.")
 
-    @c4.command(name="move")
+    @c4.command(name="move", hidden=True)
     async def c4_move(self, ctx, column: int):
         """Make a Move
 
@@ -3735,6 +3735,11 @@ class ConnectFour:
         else:
             await self.message(ctx, msg="No active game in this channel.", level=1)
 
+    @c4.command(name="help", hidden=True)
+    async def _help(self, ctx):
+        ctx.message.content = f"{self.bot.command_prefix[0]}help c4"
+        await self.bot.process_commands(ctx.message)
+
     @c4.command(name="board")
     async def c4_board(self, ctx):
         """Resends the current board
@@ -3748,7 +3753,7 @@ class ConnectFour:
         else:
             await self.message(ctx, msg="No active game in this channel.", level=1)
 
-    @c4.command(name="quit", aliases=["end", "stop"])
+    @c4.command(name="quit", aliases=["end", "stop", "forfeit"])
     async def c4_quit(self, ctx):
         """Quits an active game of Connect Four
 
