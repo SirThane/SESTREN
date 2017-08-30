@@ -3697,7 +3697,10 @@ class ConnectFour:
                 await self.message(ctx, msg="There is already an active game in this channel.", level=2)
             elif user.id == ctx.author.id:
                 await self.message(ctx, msg="You cannot start a game with yourself.", level=1)
-            # elif user.id == self.bot.user.id:
+            elif user.id == self.bot.user.id:
+                await self.message(ctx,
+                                   msg="This feature has not been implemented yet. You can play against SESTREN soon.",
+                                   level=1)
             #     self.sessions[ctx.channel.id] = ConnectFourSession(user, ctx)
             #     await self.send_board(ctx, init=True)
             #     self.sessions[ctx.channel.id].s_play()
