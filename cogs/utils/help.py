@@ -6,7 +6,8 @@ Most of the code stolen from
 discord.ext.commands.formatter.py and
 converted into embeds instead of codeblocks.
 
-Docstr on cog class becomes category.
+Cog class name becomes cog name.
+Docstr on cog class becomes category description.
 Docstr on command definition becomes command
 summary and usage.
 Use [p] in command docstr for bot prefix.
