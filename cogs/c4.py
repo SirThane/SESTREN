@@ -3605,7 +3605,7 @@ class ConnectFour:
         self.app_name = bot.app_name
         self.sessions = {}
         self.timeout = 120
-        self.timeout_incr = 5
+        self.timeout_incr = 1
         self.message_icon = ["ℹ", "⚠", "⛔"]  # :information_source:, :warning:, :no_entry:
         self.message_color = [discord.Colour.blue(), discord.Colour.orange(), discord.Colour.red()]
 
