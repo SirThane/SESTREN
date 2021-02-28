@@ -1,5 +1,16 @@
-*.idea*
+
+# Directories
+/.idea/
+/TestFiles/
+/MP3/
+/utils/eval/
+
+# Files
+ecosystem.config.js
+
+# File patterns
+*-t.py*
+*.json*
 *__pycache__*
-cogs/utils/temp.txt
-*.log
-redis.json
+*.bak*
+*.log*

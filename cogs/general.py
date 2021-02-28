@@ -1,25 +1,40 @@
+# -*- coding: utf-8 -*-
+
 """General Commands"""
 
-import discord
-from discord.ext import commands
-from cogs.utils import checks
+
+# Lib
+from datetime import datetime
+
+# Site
+from discord.colour import Colour
+from discord.ext.commands.cog import Cog
+from discord.ext.commands.context import Context
+from discord.ext.commands.core import command
+from discord.member import Member
+from discord.utils import find
+
+# Local
+from utils.checks import sudo
+from utils.classes import Bot, Embed, SubRedis
 
 
-class General:
+class General(Cog):
     """General use and utility commands."""
 
-    def __init__(self, bot):
+    def __init__(self, bot: Bot):
         self.bot = bot
+        self.config = SubRedis(bot.db, "general")
 
-    @commands.command(name='userinfo', no_private=True)
-    async def userinfo(self, ctx, member: discord.Member=None):
+        self.errorlog = bot.errorlog
+
+    @command(name='userinfo', no_private=True)
+    async def userinfo(self, ctx: Context, member: Member = None):
         """Gets current server information for a given user
 
          [p]userinfo @user
          [p]userinfo username#discrim
          [p]userinfo userid"""
-
-        from datetime import datetime
 
         if member is None:
             member = ctx.message.author
@@ -31,8 +46,8 @@ class General:
         emb = {
             'embed': {
                 'title': 'User Information For:',
-                'description': '{0.name}#{0.discriminator}'.format(member),
-                'color': getattr(discord.Colour, member.default_avatar.name)()
+                'description': f'{member.name}#{member.discriminator}',
+                'color': getattr(Colour, member.default_avatar.name)()
             },
             'author': {
                 'name': '{0.name} || #{1.name}'.format(ctx.guild, ctx.channel),
@@ -72,7 +87,7 @@ class General:
             }
         }
 
-        embed = discord.Embed(**emb['embed'])  # TODO: EMBED FUNCTION/CLASS
+        embed = Embed(**emb['embed'])  # TODO: EMBED FUNCTION/CLASS
         embed.set_author(**emb['author'])
         embed.set_thumbnail(url=member.avatar_url_as(format='png'))
         for field in emb['fields']:
@@ -81,36 +96,45 @@ class General:
 
         await ctx.channel.send(embed=embed)
 
-    @commands.command(name='ping')
-    async def ping(self, ctx):
+    @command(name='ping')
+    async def ping(self, ctx: Context):
         """Your basic `ping`"""
+
         await ctx.send('pong')
 
-    @checks.sudo()
-    @commands.command(name='discrim', hidden=True)
-    async def discrim(self, ctx, *, member: discord.Member=None):
+    @sudo()
+    @command(name='discrim')
+    async def discrim(self, ctx: Context, *, member: Member = None):
         """Finds a username that you can use to change discriminator
 
         [p]discrim"""
+
         if not member:
             member = ctx.author
 
         d = member.discriminator
-        f = discord.utils.find(lambda x: x.discriminator == d and not x.id == member.id,
-                               self.bot.get_all_members())
-        if f is not None:
-            em = discord.Embed(title="Discrim",
-                               description="Change your name to `{}` and then back to `{}` to get a new discriminator"
-                                           "".format(f.name, member.name), colour=0x00FF00)
-            await ctx.send(embed=em)
-        else:
-            em = discord.Embed(title="Sorry",
-                               description="I couldn't find another person with your discriminator", colour=0xFF0000)
-            await ctx.send(embed=em)
+        f = find(lambda x: x.discriminator == d and not x.id == member.id, self.bot.get_all_members())
 
-    @commands.command(name='learnpy')
-    async def learnpy(self, ctx):
+        if f is not None:
+            em = Embed(
+                title="Discrim",
+                description=f"Change your name to `{f.name}` and then back "
+                            f"to `{member.name}` to get a new discriminator",
+                colour=0x00FF00)
+
+        else:
+            em = Embed(
+                title="Sorry",
+                description="I couldn't find another person with your discriminator",
+                colour=0xFF0000
+            )
+
+        await ctx.send(embed=em)
+
+    @command(name='learnpy')
+    async def learnpy(self, ctx: Context):
         """Links some tutorials for Python"""
+
         msg = """
 Well, I started here and everyone said I shouldn't bother with it because it has an old Python version, but for someone who's not just new to Python, but new to programming in general, use https://codecademy.com/.
 It's very interactive, and even though you can't really do anything with what you learn, it will familiarize you with the fundamentals.
@@ -129,4 +153,5 @@ https://www.youtube.com/playlist?list=PL-osiE80TeTsqhIuOqKhwlXsIBIdSeYtc
 
 
 def setup(bot):
+    """General"""
     bot.add_cog(General(bot))

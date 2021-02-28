@@ -1,2 +1,2 @@
 # SESTREN
-Initial commit
+Personal bot for testing and experimentation
