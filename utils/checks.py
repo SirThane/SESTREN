@@ -1,13 +1,13 @@
 from discord.ext import commands
 import discord
-from main import db, app_name
+from main import db, APP_NAME
 
 """
     Utility functions and definitions.
 """
 
 
-config = f'{app_name}:config:permissions'
+config = f'{APP_NAME}:config:permissions'
 
 
 def supercede(precedent):

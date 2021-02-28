@@ -1,16 +1,19 @@
-import asyncio
-import discord
-# import operator
-# import math
-import datetime
-from discord.ext import commands
-from main import app_name
+# -*- coding: utf-8 -*-
+
+# Lib
+from asyncio import sleep
+
+# Site
+from discord.channel import DMChannel, GroupChannel
+from discord.ext.commands.cog import Cog
+from discord.member import Member
+from discord.message import Message
+
+# Local
+from utils.classes import Bot, SubRedis
 
 
-config = f'{app_name}:activity'
-
-
-# ranks = {
+# RANKS = {
 #     10: [1, "Beginner"],
 #     69: [2, "Memer Rank 1"],
 #     300: [3, "Talker"],
@@ -26,40 +29,46 @@ config = f'{app_name}:activity'
 # overrides = set()
 
 
-class UserActivity:
-    def __init__(self, bot):
+class UserActivity(Cog):
+
+    def __init__(self, bot: Bot):
         self.bot = bot
-        self.db = bot.db
+        self.config = SubRedis(bot.db, "useractivity")
+
+        self.errorlog = bot.errorlog
+
         self.cooldown = set()
 
-    async def check_cooldown(self, user):
+    async def check_cooldown(self, user: Member) -> bool:
         if user.bot:
             return True
         # if user.id in overrides:
         #     return False
         return user.id in self.cooldown or user.id == self.bot.user.id
 
-    async def put_cooldown(self, user, dur: int=15):
+    async def put_cooldown(self, user: Member, dur: int = 15):
         # if user.id in overrides:
         #     return
         self.cooldown.add(user.id)
-        await asyncio.sleep(dur)
+        await sleep(dur)
         self.cooldown.remove(user.id)
 
-    async def on_message(self, m):
-        if not isinstance(m.channel, discord.DMChannel) and not isinstance(m.channel, discord.GroupChannel):
+    @Cog.listener(name="on_message")
+    async def on_message(self, m: Message):
+        if not isinstance(m.channel, DMChannel) and not isinstance(m.channel, GroupChannel):
             return
 
-        if not self.db.sismember(f'{config}:guilds', m.guild.id):
+        if not self.config.sismember('guilds', m.guild.id):
             return
 
         if await self.check_cooldown(m.author):
             return
 
-        self.db.sadd(f'{config}:users', f'{m.author.id}')
+        self.config.sadd('users', f'{m.author.id}')
 
         try:
-            user_metrics = self.db.hgetall(f'{config}:users:time:{m.author.id}')
+            user_metrics = self.config.hgetall(f'users:time:{m.author.id}')
+
         except:
             user_metrics = {
                 'total': 0,
@@ -71,9 +80,9 @@ class UserActivity:
                 '20': 0, '21': 0, '22': 0, '23': 0,
             }
 
-        self.db.hmset(f'{config}:users:{m.author.id}', user_metrics)
+        self.config.hmset(f'users:{m.author.id}', user_metrics)
 
-        self.bot.loop.create_task(self.put_cooldown(m.author))
+        await self.put_cooldown(m.author)
 
     # def next_ranks(self, num):
     #     e = []
@@ -135,5 +144,6 @@ class UserActivity:
     #     await ctx.send(embed=em)
 
 
-def setup(bot):
+def setup(bot: Bot):
+    """UserActivity"""
     bot.add_cog(UserActivity(bot))

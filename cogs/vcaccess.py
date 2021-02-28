@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 Module for listener for user's joining/leaving voice channels.
 
@@ -9,7 +11,7 @@ On leave, removes access role.
 import discord
 from discord.ext import commands
 # import json
-from cogs.utils import danny_config
+from utils import danny_config
 
 
 class VCAccess:
@@ -131,7 +133,6 @@ class VCAccess:
         else:
             out += '```'
         await ctx.message.channel.send(content=out)
-
 
     @vca.group(name='chan')
     async def chan(self, ctx):

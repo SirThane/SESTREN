@@ -8,8 +8,7 @@ On leave, removes access role.
 
 import discord
 from discord.ext import commands
-from cogs.utils import checks
-from main import app_name
+from utils import checks
 
 
 class VCAccess:
@@ -20,7 +19,7 @@ class VCAccess:
     def __init__(self, bot):
         self.bot = bot
         # self._data = config.Config("vc_access.json")
-        self.db = bot.db
+        self.db = bot.config
 
     # @property  # I'D STARTED WORKING ON THIS WHEN I WAS SHOWN DANNY'S CONFIG.PY AND I DON'T WANT TO THROW IT AWAY
     # def _data(self):
