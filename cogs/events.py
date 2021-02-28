@@ -1,4 +1,7 @@
+# -*- coding: utf-8 -*-
+
 """Cog containing all global bot events"""
+
 
 # Lib
 from datetime import datetime

@@ -6,9 +6,11 @@
 /utils/eval/
 
 # Files
+ecosystem.config.js
 
 # File patterns
 *-t.py*
 *.json*
 *__pycache__*
 *.bak*
+*.log*

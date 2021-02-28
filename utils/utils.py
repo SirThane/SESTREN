@@ -1,5 +1,8 @@
-"""Utility functions and classes.
-"""
+# -*- coding: utf-8 -*-
+
+
+"""Utility functions and classes."""
+
 
 # Lib
 import sys
@@ -101,8 +104,10 @@ def bytespop(
 
     if decode == "utf8":
         return ret.decode("utf8"), b
+
     elif decode == "int":
         return int.from_bytes(ret, endian), b
+
     else:
         return ret, b
 
@@ -110,10 +115,12 @@ def bytespop(
 def bool_transform(arg):
     if isinstance(arg, str):
         return bool_str(arg)
+
     elif isinstance(arg, list):
         for i in range(len(arg)):
             arg[i] = bool_str(arg[i])
         return arg
+
     elif isinstance(arg, dict):
         for i in arg.keys():
             arg[i] = bool_str(arg[i])
