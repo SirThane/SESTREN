@@ -16,6 +16,7 @@ from utils.checks import sudo
 
 class Challenges(Cog):
     """Challenge entries for Python! Discord https://discord.gg/8NWhsvT"""
+
     def __init__(self, bot: Bot):
         self.bot = bot
         self.config = SubRedis(bot.db, "challenges")
