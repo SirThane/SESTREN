@@ -5,6 +5,7 @@ maps on the AWBW Discord server"""
 
 # Lib
 from json import load
+from typing import List
 
 # Site
 from discord.activity import Activity
@@ -12,8 +13,7 @@ from discord.channel import TextChannel
 from discord.ext.commands import when_mentioned
 from discord.flags import Intents
 from discord.message import Message
-from discord.utils import oauth_url  # , get
-from typing import List
+from discord.utils import oauth_url
 
 # Local
 from utils.classes import Bot, ErrorLog, StrictRedis, SubRedis
@@ -54,17 +54,20 @@ try:
     with open("redis.json", "r+") as redis_conf:
         conf = load(redis_conf)
         db = SubRedis(StrictRedis(**conf), APP_NAME)
+        config = SubRedis(db, "config")
 
 except FileNotFoundError:
     raise FileNotFoundError("redis.json not found in running directory")
 
 
-config = SubRedis(db, "config")
+if not config.hget("instance", "description"):
+    config.hset("instance", "description", "")
 
+if not config.hget("instance", "dm_help"):
+    config.hset("instance", "dm_help", "True")
 
 if not config.hget("prefix:config", "default_prefix"):
     config.hset("prefix:config", "default_prefix", "!")
-
 
 if not config.hget("prefix:config", "when_mentioned"):
     config.hset("prefix:config", "when_mentioned", "False")
@@ -89,10 +92,10 @@ def command_prefix(client: Bot, msg: Message) -> List[str]:
     return prefix
 
 
-intent = Intents.all()
+intents = Intents.all()
 
 
-bot = Bot(db=db, app_name=APP_NAME, command_prefix=command_prefix, intents=intent, **config.hgetall("instance"))
+bot = Bot(db=db, app_name=APP_NAME, command_prefix=command_prefix, intents=intents, **config.hgetall("instance"))
 
 
 @bot.event
