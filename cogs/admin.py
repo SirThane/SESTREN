@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+
 """
 Mostly stolen from Luc:
     Administrative commands for pory. A lot of them used from my HockeyBot,
@@ -7,6 +8,7 @@ Mostly stolen from Luc:
 
 Copyright (c) 2015 Rapptz
 """
+
 
 # Lib
 from asyncio import sleep
@@ -506,134 +508,166 @@ class Admin(Cog):
         ############################################### """
 
     @sudo()
-    @group(name='status', invoke_without_command=True)
-    async def status(self, ctx: Context):
+    @group(name='presence', invoke_without_command=True, aliases=["status"])
+    async def presence(self, ctx: Context):
         """Changes the status and state"""
+
         pass
 
     @sudo()
-    @status.command(name="online")
+    @presence.command(name="online")
     async def online(self, ctx: Context):
         """Changes online status to Online"""
-        await self.bot.change_presence(status=Status.online)
+
+        activity = self.bot.presence["activity"]
+
+        await self.bot.change_presence(activity=activity, status=Status.online)
 
         em = Embed(
             title="Administration: Change Online Status",
             description="Status changed to `online`",
             color=0x00FF00
         )
+
         await ctx.send(embed=em, delete_after=self.delete_after)
 
     @sudo()
-    @status.command(name="dnd", aliases=["do_not_disturb"])
+    @presence.command(name="dnd", aliases=["do_not_disturb"])
     async def dnd(self, ctx: Context):
         """Changes online status to Do Not Disturb"""
-        await self.bot.change_presence(status=Status.dnd)
+
+        activity = self.bot.presence["activity"]
+
+        await self.bot.change_presence(activity=activity, status=Status.dnd)
 
         em = Embed(
             title="Administration: Change Online Status",
             description="Status changed to `dnd`",
             color=0x00FF00
         )
+
         await ctx.send(embed=em, delete_after=self.delete_after)
 
     @sudo()
-    @status.command(name="idle")
+    @presence.command(name="idle")
     async def idle(self, ctx: Context):
         """Changes online status to Idle"""
-        await self.bot.change_presence(status=Status.idle)
+
+        activity = self.bot.presence["activity"]
+
+        await self.bot.change_presence(activity=activity, status=Status.idle)
 
         em = Embed(
             title="Administration: Change Online Status",
             description="Status changed to `idle`",
             color=0x00FF00
         )
+
         await ctx.send(embed=em, delete_after=self.delete_after)
 
     @sudo()
-    @status.command(name="invisible", aliases=["offline"])
+    @presence.command(name="invisible", aliases=["offline"])
     async def invisible(self, ctx: Context):
         """Changes online status to Invisible"""
-        await self.bot.change_presence(status=Status.invisible)
+
+        activity = self.bot.presence["activity"]
+
+        await self.bot.change_presence(activity=activity, status=Status.invisible)
 
         em = Embed(
             title="Administration: Change Online Status",
             description="Status changed to `invisible`",
             color=0x00FF00
         )
+
         await ctx.send(embed=em, delete_after=self.delete_after)
 
     @sudo()
-    @status.command(name="remove", aliases=["rem", "del", "delete", "stop"])
+    @presence.command(name="remove", aliases=["rem", "del", "delete", "stop"])
     async def remove(self, ctx: Context):
-        """Removes status message"""
+        """Removes presence activity message"""
+
         activity = Activity(name=None)
+
         await self.bot.change_presence(activity=activity)
 
         em = Embed(
-            title="Administration: Status Message Removed",
+            title="Administration: Activity Message Removed",
             color=0x00FF00
         )
+
         await ctx.send(embed=em, delete_after=self.delete_after)
 
     @sudo()
-    @status.command(name="playing", aliases=["game"])
-    async def playing(self, ctx: Context, *, status: str):
-        """Changes status to `Playing (status)`
+    @presence.command(name="playing", aliases=["game"])
+    async def playing(self, ctx: Context, *, name: str):
+        """Changes presence activity to `Playing (name)`
 
-        Will also change status header to `Playing A Game`"""
-        activity = Activity(name=status, type=ActivityType.playing)
-        await self.bot.change_presence(activity=activity)
+        Will also change presence header to `Playing A Game`"""
+
+        activity = Activity(name=name, type=ActivityType.playing)
+        status = self.bot.presence["status"]
+
+        await self.bot.change_presence(activity=activity, status=status)
 
         em = Embed(
-            title="Administration: Status Message Set",
+            title="Administration: Activity Message Set",
             description=f"**Playing A Game\n**"
-                        f"Playing {status}",
+                        f"Playing {name}",
             color=0x00FF00
         )
         await ctx.send(embed=em, delete_after=self.delete_after)
 
     @sudo()
-    @status.command(name="streaming")
-    async def streaming(self, ctx: Context, *, status: str):
-        """Changes status to `Playing (status)`
+    @presence.command(name="streaming")
+    async def streaming(self, ctx: Context, *, name: str):
+        """Changes presence activity to `Playing (name)`
 
-        Will also change status header to `Live on Twitch`"""
-        activity = Activity(name=status, type=ActivityType.streaming)
-        await self.bot.change_presence(activity=activity)
+        Will also change presence header to `Live on Twitch`"""
+
+        activity = Activity(name=name, type=ActivityType.streaming)
+        status = self.bot.presence["status"]
+
+        await self.bot.change_presence(activity=activity, status=status)
 
         em = Embed(
-            title="Administration: Status Message Set",
+            title="Administration: Activity Message Set",
             description=f"**Live On Twitch\n**"
-                        f"Playing {status}",
+                        f"Playing {name}",
             color=0x00FF00
         )
         await ctx.send(embed=em, delete_after=self.delete_after)
 
     @sudo()
-    @status.command(name="listening")
-    async def listening(self, ctx: Context, *, status: str):
-        """Changes status to `Listening to (status)`"""
-        activity = Activity(name=status, type=ActivityType.listening)
-        await self.bot.change_presence(activity=activity)
+    @presence.command(name="listening")
+    async def listening(self, ctx: Context, *, name: str):
+        """Changes presence activity to `Listening to (name)`"""
+
+        activity = Activity(name=name, type=ActivityType.listening)
+        status = self.bot.presence["status"]
+
+        await self.bot.change_presence(activity=activity, status=status)
 
         em = Embed(
-            title="Administration: Status Message Set",
-            description=f"Listening to {status}",
+            title="Administration: Activity Message Set",
+            description=f"Listening to {name}",
             color=0x00FF00
         )
         await ctx.send(embed=em, delete_after=self.delete_after)
 
     @sudo()
-    @status.command(name="watching")
-    async def watching(self, ctx: Context, *, status: str):
-        """Changes status to `Watching (status)`"""
-        activity = Activity(name=status, type=ActivityType.watching)
-        await self.bot.change_presence(activity=activity)
+    @presence.command(name="watching")
+    async def watching(self, ctx: Context, *, name: str):
+        """Changes presence activity to `Watching (name)`"""
+
+        activity = Activity(name=name, type=ActivityType.watching)
+        status = self.bot.presence["status"]
+
+        await self.bot.change_presence(activity=activity, status=status)
 
         em = Embed(
-            title="Administration: Status Message Set",
-            description=f"Watching {status}",
+            title="Administration: Activity Message Set",
+            description=f"Watching {name}",
             color=0x00FF00
         )
         await ctx.send(embed=em, delete_after=self.delete_after)

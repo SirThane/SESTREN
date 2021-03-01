@@ -366,6 +366,9 @@ class Bot(DiscordBot):
         # Declaring first. This will not be able to get set until login
         self.app_info: AppInfo = kwargs.get("app_info", None)
 
+        # Dict to store custom presence Activity and Status
+        self.presence = {"activity": None, "status": None}
+
         # Get the channel ready for errorlog
         # Bot.get_channel method not available until on_ready
         self.errorlog_channel: int = kwargs.pop("errorlog", None)
@@ -412,6 +415,17 @@ class Bot(DiscordBot):
         # Otherwise, use default handler
         else:
             await super().on_error(event_method=event_name, *args, **kwargs)
+
+    def change_presence(self, *, activity=None, status=None, afk=False):
+        """Override so we can capture the presences and store them"""
+
+        if activity:
+            self.presence["activity"] = activity
+
+        if status:
+            self.presence["status"] = status
+
+        return super().change_presence(activity=activity, status=status, afk=afk)
 
 
 class StrictRedis(DefaultStrictRedis):
