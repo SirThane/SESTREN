@@ -16,13 +16,13 @@ from discord.channel import TextChannel
 from discord.colour import Colour
 from discord.embeds import Embed as DiscordEmbed
 from discord.errors import DiscordException, LoginFailure
-from discord.ext.commands import Bot as DiscordBot
+from discord.ext.commands.bot import Bot as DiscordBot
 from discord.ext.commands.context import Context
 from discord.ext.commands.converter import IDConverter
 from discord.ext.commands.errors import BadArgument
 from discord.message import Message
 from discord.utils import get, find
-from redis.client import StrictRedis as DefaultStrictRedis
+from redis.client import Redis as DefaultRedis
 
 # Local
 from utils.utils import ZWSP, bool_transform, _get_from_guilds
@@ -428,7 +428,7 @@ class Bot(DiscordBot):
         return super().change_presence(activity=activity, status=status, afk=afk)
 
 
-class StrictRedis(DefaultStrictRedis):
+class Redis(DefaultRedis):
     """Turns 'True' and 'False' values returns
     in redis to bool values"""
 
@@ -443,10 +443,54 @@ class StrictRedis(DefaultStrictRedis):
         else:
             return ret
 
+    def to_dict(self, match: str = "*", cast_values: bool = False, include_types: bool = False) -> Dict[str: Any]:
+
+        data_types = {
+            "string": (self.get, tuple(), None),
+            "list": (self.lrange, (0, -1), None),
+            "set": (self.smembers, tuple(), list),
+            "zset": (self.zrange, (0, -1, False, True), dict),
+            "hash": (self.hgetall, tuple(), None)
+        }
+
+        mapping = dict()
+
+        if include_types:
+            mapping["::types"] = dict()
+
+        for key in self.scan_iter(match=match):
+            data_type = self.type(key)
+
+            if include_types:
+                mapping["::types"][key] = data_type
+
+            callback, args, cast_type = data_types.get(data_type)
+
+            value = callback(key, *args)
+
+            cursor = mapping
+
+            for ns in key.split(":"):
+                if ns not in cursor.keys():
+                    cursor[ns] = dict()
+                cursor = cursor[ns]
+
+            if cast_values and cast_type:
+                value = cast_type(value)
+
+            cursor[key] = value
+
+        return mapping
+
+    # def update(self, root_key: str, mapping: Dict[str: Union[str, list, set, dict, Tuple[str, int]]]):
+    #
+    #     for key, value in mapping.items():
+    #         self.zadd()
+
 
 class SubRedis:
 
-    def __init__(self, db: Union[StrictRedis, SubRedis], basekey: str):
+    def __init__(self, db: Union[Redis, SubRedis], basekey: str):
 
         if isinstance(db, SubRedis):
             self.root = db.root
