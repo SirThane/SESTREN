@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""BattleMaps, a utility bot for working with Advance Wars
-maps on the AWBW Discord server"""
+"""SESTREN"""
 
 # Lib
 from json import load
@@ -16,7 +15,7 @@ from discord.message import Message
 from discord.utils import oauth_url
 
 # Local
-from utils.classes import Bot, ErrorLog, StrictRedis, SubRedis
+from utils.classes import Bot, ErrorLog, Redis, SubRedis
 
 
 APP_NAME = "SESTREN"  # BOT NAME HERE
@@ -53,7 +52,7 @@ Redis Configuration JSON Schema
 try:
     with open("redis.json", "r+") as redis_conf:
         conf = load(redis_conf)
-        db = SubRedis(StrictRedis(**conf), APP_NAME)
+        db = SubRedis(Redis(**conf), APP_NAME)
         config = SubRedis(db, "config")
 
 except FileNotFoundError:
