@@ -374,7 +374,6 @@ class Bot(DiscordBot):
         self.errorlog_channel: int = kwargs.pop("errorlog", None)
         self.errorlog: ErrorLog = kwargs.get("errorlog", None)
 
-        # Added by help.bak.py
         # Supress IDE errors
         self.send_help_for = None
 
