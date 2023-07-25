@@ -1,12 +1,9 @@
 
 # Directories
+*/__pycache__/*
 /.idea/
-/TestFiles/
-/MP3/
-/utils/eval/
 
 # Files
-ecosystem.config.js
 
 # File patterns
 *-t.py*
