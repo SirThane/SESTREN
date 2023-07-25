@@ -8,6 +8,8 @@
 import sys
 from contextlib import contextmanager
 from io import StringIO, BytesIO
+from os import remove
+from os.path import exists
 from time import localtime, strftime
 from typing import Iterable, Tuple, Union
 
@@ -18,6 +20,26 @@ from aiohttp.client import ClientSession
 
 
 ZWSP = u'\u200b'
+
+
+def verify_token(config):
+
+    if config.get("token"):
+        return True
+
+    # No token, pull from file
+    elif exists("token"):
+
+        # Set in db
+        with open("token", "r") as fp:
+            config.set("token", fp.read())
+
+        # Delete file and signal that file has been populated
+        remove("token")
+        return True
+
+    # No token and could not find token file
+    return False
 
 
 def _get_from_guilds(bot, getter, argument):

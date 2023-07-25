@@ -313,7 +313,7 @@ class Admin(Cog):
         modules = dict()
         failed = dict()
 
-        for init_module in self.config_bot.lrange('initial_cogs', 0, -1):
+        for init_module in self.config_bot.smembers('initial_cogs'):
             try:
                 module = import_module(f"cogs.{init_module}")
                 module_setup = getattr(module, "setup")
@@ -350,7 +350,7 @@ class Admin(Cog):
         lib = None
         module_setup = None
 
-        init_modules = self.config_bot.lrange("initial_cogs", 0, -1)
+        init_modules = self.config_bot.smembers("initial_cogs")
         if module in init_modules:
             em = Embed(
                 title="Administration: Initial Module Add Failed",
@@ -399,7 +399,7 @@ class Admin(Cog):
             verbose_error = error
 
         else:
-            self.config_bot.lpush("initial_cogs", module)
+            self.config_bot.sadd("initial_cogs", module)
             em = Embed(
                 title="Administration: Initial Module Add",
                 description=f"Module `{module}` added to initial modules",
@@ -421,10 +421,10 @@ class Admin(Cog):
         """Removes a module from initial modules"""
 
         # Get current list of initial cogs
-        init_modules = self.config_bot.lrange("initial_cogs", 0, -1)
+        init_modules = self.config_bot.smembers("initial_cogs")
 
         if module in init_modules:
-            self.config_bot.lrem("initial_cogs", 0, module)
+            self.config_bot.srem("initial_cogs", module)
             em = Embed(
                 title="Administration: Initial Module Remove",
                 description=f"Module `{module}` removed from initial modules",
@@ -673,10 +673,26 @@ class Admin(Cog):
         await ctx.send(embed=em, delete_after=self.delete_after)
 
     """ #########################
+         Internal Configurations
+        ######################### """
+
+    @group(name="config", aliases=["conf"], invoke_without_command=True)
+    async def config(self, ctx: Context):
+        await self.bot.send_help_for(ctx, self.bot.get_command("config"))
+
+    """ ##########
+         Instance
+        ########## """
+
+    @config.command(name="desc", aliases=["description"])
+    async def desc(self, ctx: Context, *, description: str = None):
+        pass
+
+    """ #########################
          Guild-Specific Prefixes
         ######################### """
 
-    @group(name="prefix", invoke_without_command=True)
+    @config.group(name="prefix", invoke_without_command=True)
     async def prefix(self, ctx: Context):
         """Manage bot prefixes
 
