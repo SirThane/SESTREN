@@ -1,15 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-"""
-Mostly stolen from Luc:
-    Administrative commands for pory. A lot of them used from my HockeyBot,
-    which in turn were mostly from Danny.
-
-Copyright (c) 2015 Rapptz
-"""
-
-
 # Lib
 from asyncio import sleep
 from importlib import import_module
