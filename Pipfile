@@ -1,0 +1,15 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+discord = "==2.3.1"
+pytz = "~=2023.3"
+redis = "~=4.6.0"
+
+[dev-packages]
+
+[requires]
+python_version = "3.11"
+python_full_version = "3.11.2"
